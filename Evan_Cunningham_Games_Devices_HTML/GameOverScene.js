@@ -1,7 +1,11 @@
 function GameOverScene(){
 	this.title = "Game Over";
-	this.buttons.push(new Button(game.sceneManager.goToScene, "Game", 4*window.innerWidth/10 - 15,window.innerHeight/2,window.innerWidth/10,window.innerHeight/20));
-	this.buttons.push(new Button(game.sceneManager.goToScene, "Planet Defender", 4*window.innerWidth/10 - 20, window.innerHeight/6, window.innerWidth/7, window.innerHeight/20));
+	this.gameButton = new Image();
+	this.titleButton = new Image();
+	this.gameButton.src = 'resources/HighRes/returnButton.png';
+	this.titleButton.src = 'resources/HighRes/titleButton.png';
+	this.buttons.push(new Button(game.sceneManager.goToScene, "Game", 4*window.innerWidth/10 - 15,window.innerHeight/2,window.innerWidth/10,window.innerHeight/20, this.gameButton));
+	this.buttons.push(new Button(game.sceneManager.goToScene, "Planet Defender", 4*window.innerWidth/10 - 20, window.innerHeight/6, window.innerWidth/10, window.innerHeight/20, this.titleButton));
 }
 
 GameOverScene.prototype = new Scene();
@@ -16,10 +20,6 @@ GameOverScene.prototype.render = function()
 	{
 	 	this.buttons[i].draw();
 	}
- 	ctx.font = "bold 28px serif";
-	ctx.fillStyle = game.rgb(0,0,0);
- 	ctx.fillText("Restart", 4*window.innerWidth/10 + 20, window.innerHeight/2 + 35);
- 	ctx.fillText("Quit to Title", 4*window.innerWidth/10 + 5, window.innerHeight/6 + 35);
 }
 
 GameOverScene.prototype.input = function(x,y){

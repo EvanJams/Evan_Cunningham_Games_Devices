@@ -1,7 +1,11 @@
 function PauseScene(){
 	this.title = "Pause";
-	this.buttons.push(new Button(game.sceneManager.goToScene, "Planet Defender", window.innerWidth/2,window.innerHeight/2,window.innerWidth/10,window.innerHeight/20));
-	this.buttons.push(new Button(game.sceneManager.goToScene, "Game", window.innerWidth/3,window.innerHeight/2,window.innerWidth/10,window.innerHeight/20));
+	this.gameButton = new Image();
+	this.titleButton = new Image();
+	this.gameButton.src = 'resources/HighRes/returnButton.png';
+	this.titleButton.src = 'resources/HighRes/titleButton.png';
+	this.buttons.push(new Button(game.sceneManager.goToScene, "Planet Defender", window.innerWidth/2,window.innerHeight/2,window.innerWidth/10,window.innerHeight/20, this.titleButton));
+	this.buttons.push(new Button(game.sceneManager.goToScene, "Game", window.innerWidth/3,window.innerHeight/2,window.innerWidth/10,window.innerHeight/20, this.gameButton));
 }
 
 PauseScene.prototype = new Scene();

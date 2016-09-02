@@ -9,8 +9,7 @@ function Player(xPos, yPos, img){
 }
 
 Player.prototype.render = function()
-{	
-	console.log(game.colourBlind);
+{
 	ctx.drawImage(this.image, this.x, this.y, this.width, this.height);
 }
 

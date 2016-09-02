@@ -2,14 +2,17 @@ function GameScene(){
 	this.title = "Game";
 	this.bullets = [];
 	this.enemies = [];
-	this.spawnTimer = 50;
+	this.spawnTimer = 100;
 	this.timeSinceSpawn = 0;
-	this.spawnLimit = 30;
+	//rate of increase in spawn rate (higher number = slower)
+	this.spawnLimit = 90;
 	this.score = 0;
 	this.bulletsFired = 0;
+	this.planetHealth = 10;
+	this.playerHealth = 100;
 	this.changedLevel = false;
 	this.buttonWidth = window.innerWidth/12;
-	this.enemySpeed = 10;
+	this.enemySpeed = 5;
 	this.tutorialComplete = false;
 	//loading files
 	this.playerImg = new Image();
@@ -35,7 +38,6 @@ GameScene.prototype.update = function()
 {	
 	if(this.tutorialComplete == false)
 	{
-
 		this.player.update();
 		for(var i = 0; i < this.bullets.length; i++)
 		{
@@ -46,12 +48,11 @@ GameScene.prototype.update = function()
 				this.bullets.splice(i,1);
 			}
 		}
-		if(this.bulletsFired > 5)
+		if(this.bulletsFired >= 5)
 		{
 			this.tutorialComplete = true;
 			this.bulletsFired = 0;
 		}
-
 	}
 	else
 	{
@@ -72,29 +73,41 @@ GameScene.prototype.update = function()
 			}
 		}
 	
-		//for(var i = 0; i < this.enemies.length; i++)
-		//{
-		//	this.enemies[i].update();
-		//}
+		for(var i = 0; i < this.enemies.length; i++)
+		{
+			this.enemies[i].update(this.player.y);
+			if(this.enemies[i].x > window.innerWidth * 2 || this.enemies[i].x < 0 ||
+				this.enemies[i].y < 0 || this.enemies[i].y > window.innerHeight)
+			{
+				this.enemies.splice(i, 1);
+				this.planetHealth--;
+				if(this.planetHealth <= 0)
+				{
+					this.gameOver();
+				}
+			}
+				
+		}
 		//spawning enemies
-		//if(this.timeSinceSpawn >= this.spawnTimer)
-		//{
+		if(this.timeSinceSpawn >= this.spawnTimer)
+		{
 			//Random Spawns for enemies
-		//	var enemyPos = Math.random();
-		//	var xEnemyPass = window.innerWidth + window.innerWidth/5;
-		//	var yEnemyPass = enemyPass % (window.innerHeight - window.innerHeight/10);
-		//	this.enemies.push(new Enemy(xEnemyPass, yEnemyPass, this.enemyImg, this.enemySpeed));
-		//	this.timeSinceSpawn = 0;
-		//	if(this.spawnTimer > this.spawnLimit)
-		//	{
-		//		this.spawnTimer--;
-		//		this.enemySpeed++;
-		//	}
-		//}
-		//else{this.timeSinceSpawn++}
+			var enemyPos = Math.random() * window.innerHeight;
+			var xEnemyPass = window.innerWidth + window.innerWidth/5;
+			var yEnemyPass = enemyPos;
+			this.enemies.push(new Enemy(xEnemyPass, yEnemyPass, this.enemyImg, this.enemySpeed));
+			//resetting timer for enemy spawn
+			this.timeSinceSpawn = 0;
+			if(this.spawnTimer > this.spawnLimit)
+			{
+				this.spawnTimer--;
+				this.enemySpeed++;
+			}
+		}
+		else{this.timeSinceSpawn++}
 		//functions
-		//this.detectCollisions(this.bullets, this.enemies);
-		//this.detectDeath(this.enemies, this.player);
+		this.detectCollisions(this.bullets, this.enemies);
+		this.detectDeath(this.enemies, this.player);
 	}
 }
 
@@ -130,10 +143,10 @@ GameScene.prototype.render = function()
 		{
 		 	this.bullets[i].render();
 		}
-		//for(var i = 0; i < this.enemies.length; i++)
-		//{
-		//	this.enemies[i].render();
-		//}
+		for(var i = 0; i < this.enemies.length; i++)
+		{
+			this.enemies[i].render();
+		}
 		for(var i = 0; i < this.buttons.length; i++)
 		{
 		 	this.buttons[i].draw();
@@ -144,14 +157,15 @@ GameScene.prototype.render = function()
 	 	ctx.font = "bold 18px serif";
 	 	ctx.fillText("Current Score: " + this.score, window.innerWidth - window.innerWidth/5, window.innerHeight/40);
 	 	ctx.fillText("High Score: " + game.score, window.innerWidth - window.innerWidth/5, window.innerHeight/20);
+	 	ctx.fillText("Planet Health: " + this.planetHealth, window.innerWidth/18, window.innerHeight - window.innerHeight/20);
+	 	ctx.fillText("Ship Health: " + this.playerHealth, window.innerWidth - window.innerWidth/5, window.innerHeight - window.innerHeight / 20);
+
 	}
 }
 
 GameScene.prototype.input = function(x,y){
-	//this.bullets.push(new Bullet(this.player.x + this.player.width, this.player.y + this.player.height/2, x, y));
 	//this.gunSound.play();
 	//this.gunSound.currentTime = 0;
-	//this.bulletsFired++;
 	for(var i = 0; i < this.buttons.length; i++)
 	{
 		this.buttons[i].isClicked(x,y);
@@ -177,18 +191,13 @@ GameScene.prototype.detectCollisions = function(bullets, entities){
 			{
 				bullets.splice(j,1);
 				entities.splice(i,1);
-				this.score+= 11 - this.bulletsFired;
+				this.score+= 10;
 				this.bulletsFired = 0;
-				if(this.score > 300 && this.changedLevel == false){
-					game.currentLevel = 2;
-					this.changedLevel = true;
-					this.level2Sfx.play();
-				}
-				if(game.currentLevel == 2 && this.chanceOfScream <= 1)
-				{
-					this.snd.play();
-					this.snd.currentTime = 0;
-				}
+				//if(this.score > 300 && this.changedLevel == false){
+				//	game.currentLevel = 2;
+				//	this.changedLevel = true;
+				//	this.level2Sfx.play();
+				//}
 			}
 		}
 	}
@@ -202,8 +211,13 @@ GameScene.prototype.detectDeath = function(killers, life){
 				killers[i].y < life.y + life.height &&
 				killers[i].y + killers[i].height > life.y)
 		{
-			this.killedSfx.play();
+			killers.splice(i,1);
+			this.playerHealth -= 20;
+			if(this.playerHealth <= 0)
+			{
+			//this.killedSfx.play();
 			this.gameOver();
+			}
 		}
 	}
 }
@@ -214,12 +228,17 @@ GameScene.prototype.gameOver = function(){
 		game.score = this.score;
 	}
 	game.previousScore = this.score;
+	//Resetting arrays and error prevention
 	this.paused = false;
 	this.bullets = [];
 	this.enemies = [];
-	this.spawnTimer = 50;
+	this.spawnTimer = 100;
 	this.timeSinceSpawn = 0;
-	this.spawnLimit = 30;
+	this.enemySpeed = 5;
+	//resetting the player, score and bullets
+	this.player.y = window.innerHeight/2;
+	this.playerHealth = 100;
+	this.planetHealth = 10;
 	this.bulletsFired = 0;
 	this.score = 0;
 	game.currentLevel = 1;
@@ -227,7 +246,6 @@ GameScene.prototype.gameOver = function(){
 	//this.soundtrack.pause();
 	//this.soundtrack.currentTime = 0;
 	game.sceneManager.goToScene("Game Over");
-	console.log("Games over pal");
 }
 
 GameScene.prototype.onTouchStart = function(x,y){	
