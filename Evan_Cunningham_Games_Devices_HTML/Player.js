@@ -1,20 +1,35 @@
-function Player(xPos, yPos){
+function Player(xPos, yPos, img){
 	this.x = xPos;
 	this.y = yPos;
-	this.width = 20;
-	this.height = 20;
+	this.yVelocity = 0;
+	this.image = img;
+	this.width = window.innerWidth/20;
+	this.height = window.innerHeight/20;
+	this.goingUp = false;
 }
 
 Player.prototype.render = function()
 {	
 	console.log(game.colourBlind);
-	if(game.colourBlind == true){
-		ctx.fillStyle = game.rgb(10,200,200);
+	ctx.drawImage(this.image, this.x, this.y, this.width, this.height);
+}
+
+Player.prototype.moveCommand = function(x,y){
+	if(y > this.y)
+	{
+		this.yVelocity = 10;
+		this.goingUp = true;
 	}
-	else if(game.colourBlind == false){
-		ctx.fillStyle = game.rgb(10,200,10);
+	else
+	{
+		this.yVelocity = -10;
+		this.goingUp = false;
 	}
-	ctx.fillRect(this.x, this.y, this.width, this.height);
+}
+
+Player.prototype.stopMoving = function(){
+	console.log("stop");
+	this.yVelocity = 0;
 }
 
 Player.prototype.start = function(){
@@ -26,7 +41,11 @@ Player.prototype.stop = function(){
 }
 
 Player.prototype.update = function(){
-
+	if(this.goingUp == false && this.y > this.height ||
+		this.goingUp == true && this.y < window.innerHeight - this.height*2)
+	{
+		this.y += this.yVelocity;
+	}
 }
 
 Player.prototype.input = function(x,y){

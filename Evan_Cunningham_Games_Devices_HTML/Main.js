@@ -6,7 +6,7 @@ function main()
 	game.init();
 	game.sceneManager.addScene(new TitleScene());
 //	game.sceneManager.addScene(new MenuScene());
-//	game.sceneManager.addScene(new GameScene());
+	game.sceneManager.addScene(new GameScene());
 //	game.sceneManager.addScene(new PauseScene());
 //	game.sceneManager.addScene(new GameOverScene());
 	game.gameLoop();

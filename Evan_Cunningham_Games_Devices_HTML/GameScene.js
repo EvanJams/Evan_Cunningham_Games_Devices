@@ -7,129 +7,162 @@ function GameScene(){
 	this.spawnLimit = 30;
 	this.score = 0;
 	this.bulletsFired = 0;
-	this.chanceOfScream = 0;
 	this.changedLevel = false;
-	//objects
-	this.buttons.push(new Button(game.sceneManager.goToScene, "Pause", window.innerWidth/20,0,window.innerWidth/12,window.innerHeight/20));
-	this.player = new Player(window.innerWidth/2,window.innerHeight/2);
+	this.buttonWidth = window.innerWidth/12;
+	this.enemySpeed = 10;
+	this.tutorialComplete = false;
 	//loading files
-	this.img = new Image();
-	this.img.src = 'spritesheet.png';
-	this.loadAnimationMetadata("level.json");
-	this.snd = new Audio("scream.wav");
-	this.gunSound = new Audio("gun.wav");
-	this.level2Sfx = new Audio("level2.mp3");
-	this.killedSfx = new Audio("deaded.mp3");
-	this.soundtrack = new Audio("music.mp3");
+	this.playerImg = new Image();
+	this.pauseImg = new Image();
+	this.enemyImg = new Image();
+	this.spaceImg = new Image();
+	this.bulletImg = new Image();
+	this.earthImg = new Image();
+	this.playerImg.src = 'resources/HighRes/player.png';
+	this.pauseImg.src = 'resources/HighRes/pauseButton.png';
+	this.enemyImg.src = 'resources/HighRes/enemyship.png';
+	this.spaceImg.src = 'resources/HighRes/background.png';
+	this.bulletImg.src = 'resources/HighRes/laser.png';
+	this.earthImg.src = 'resources/HighRes/earth.png';
+	//this.gunSound = new Audio("gun.wav");
+	//objects
+	this.buttons.push(new Button(game.sceneManager.goToScene, "Pause", window.innerWidth/20,0,window.innerWidth/12,window.innerHeight/20, this.pauseImg));
+	this.player = new Player(window.innerWidth/19,window.innerHeight/2, this.playerImg);
 }
 GameScene.prototype = new Scene();
 
-//loading from JSON
-GameScene.prototype.loadAnimationMetadata = function(filename) {
-    var jsonfile = new XMLHttpRequest();
-     
-    jsonfile.open("GET", filename, true);
- 
-	//when the message comes back from the server this function is called
-	jsonfile.onreadystatechange = function() {
-    	if (jsonfile.readyState == 4) {
-        	if (jsonfile.status == 200) {             
-            	//data now contains the data from the json file
-            	data = JSON.parse(jsonfile.responseText);                        
-        	}
-    	}
-	};        
-    //This sends the request
-    jsonfile.send(null);
-}
-
 GameScene.prototype.update = function()
 {	
-	this.soundtrack.play();
-	if(this.soundtrack.ended){
-		this.soundtrack.currentTime = 0;
-		this.soundtrack.play();
-	}
-	//updating bullets, then enemies
-	for(var i = 0; i < this.bullets.length; i++)
+	if(this.tutorialComplete == false)
 	{
-		this.bullets[i].update();
-		if(this.bullets[i].x > window.innerWidth || this.bullets[i].x < 0 ||
-			this.bullets[i].y < 0 || this.bullets[i].y > window.innerHeight)
+
+		this.player.update();
+		for(var i = 0; i < this.bullets.length; i++)
 		{
-			this.bullets.splice(i,1);
+			this.bullets[i].update();
+			if(this.bullets[i].x > window.innerWidth || this.bullets[i].x < 0 ||
+				this.bullets[i].y < 0 || this.bullets[i].y > window.innerHeight)
+			{
+				this.bullets.splice(i,1);
+			}
 		}
-	}
-	console.log(this.bullets.length);
-	for(var i = 0; i < this.enemies.length; i++)
-	{
-		this.enemies[i].update();
-	}
-	//spawning enemies
-	if(this.timeSinceSpawn >= this.spawnTimer)
-	{
-		//Random Spawns for enemies
-		var enemyPass = Math.random();
-		enemyPass *= Math.PI * 2;
-		//Converting to Cartesian 
-		var radius = 500;
-		var xEnemyPass = Math.sin(enemyPass) * radius;
-		var yEnemyPass = Math.cos(enemyPass) * radius;
-		//centering around the player
-		xEnemyPass += this.player.x;
-		yEnemyPass += this.player.y;
-		this.enemies.push(new Enemy(xEnemyPass, yEnemyPass, this.player.x, this.player.y, this.img));
-		this.timeSinceSpawn = 0;
-		if(this.spawnTimer > this.spawnLimit)
+		if(this.bulletsFired > 5)
 		{
-			this.spawnTimer--;
+			this.tutorialComplete = true;
+			this.bulletsFired = 0;
 		}
+
 	}
-	else{this.timeSinceSpawn++}
-	//functions
-	this.chanceOfScream = Math.random() * 30;
-	this.detectCollisions(this.bullets, this.enemies);
-	this.detectDeath(this.enemies, this.player);
+	else
+	{
+		this.player.update();
+		//this.soundtrack.play();
+		//if(this.soundtrack.ended){
+		//	this.soundtrack.currentTime = 0;
+		//	this.soundtrack.play();
+		//}
+		//updating bullets, then enemies
+		for(var i = 0; i < this.bullets.length; i++)
+		{
+			this.bullets[i].update();
+			if(this.bullets[i].x > window.innerWidth || this.bullets[i].x < 0 ||
+				this.bullets[i].y < 0 || this.bullets[i].y > window.innerHeight)
+			{
+				this.bullets.splice(i,1);
+			}
+		}
+	
+		//for(var i = 0; i < this.enemies.length; i++)
+		//{
+		//	this.enemies[i].update();
+		//}
+		//spawning enemies
+		//if(this.timeSinceSpawn >= this.spawnTimer)
+		//{
+			//Random Spawns for enemies
+		//	var enemyPos = Math.random();
+		//	var xEnemyPass = window.innerWidth + window.innerWidth/5;
+		//	var yEnemyPass = enemyPass % (window.innerHeight - window.innerHeight/10);
+		//	this.enemies.push(new Enemy(xEnemyPass, yEnemyPass, this.enemyImg, this.enemySpeed));
+		//	this.timeSinceSpawn = 0;
+		//	if(this.spawnTimer > this.spawnLimit)
+		//	{
+		//		this.spawnTimer--;
+		//		this.enemySpeed++;
+		//	}
+		//}
+		//else{this.timeSinceSpawn++}
+		//functions
+		//this.detectCollisions(this.bullets, this.enemies);
+		//this.detectDeath(this.enemies, this.player);
+	}
 }
 
 GameScene.prototype.render = function()
 {	
-	ctx.drawImage(game.backImage, 0, 0, window.innerWidth, window.innerHeight);
-	if(game.currentLevel == 2)
+	ctx.drawImage(this.spaceImg, 0, 0, window.innerWidth, window.innerHeight);
+	ctx.drawImage(this.earthImg, 0, 0, window.innerWidth/20, window.innerHeight);
+	if(this.tutorialComplete == false)
 	{
-		ctx.fillStyle = game.rgb(50,10,10);
-		ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
-	}
-	for(var i = 0; i < this.bullets.length; i++)
-	{
-	 	this.bullets[i].render();
-	}
-	for(var i = 0; i < this.enemies.length; i++)
-	{
-		this.enemies[i].render();
-	}
-	for(var i = 0; i < this.buttons.length; i++)
-	{
-	 	this.buttons[i].draw();
+		for(var i = 0; i < this.bullets.length; i++)
+		{
+		 	this.bullets[i].render();
+		}
+		for(var i = 0; i < this.buttons.length; i++)
+		{
+		 	this.buttons[i].draw();
+		}
+		this.player.render();
+		ctx.fillStyle = game.rgb(200,200,200);
+	 	ctx.font = "bold 18px serif";
+	 	ctx.fillText("Welcome to Planet Defence. Tap the left side of the screen to move up and down, and the right side to shoot!", window.innerWidth/18, window.innerHeight/15);
+	 	ctx.fillText("The amount of human colonies left on earth is displayed at the bottom of the screen, and your ships health is to the right of that.", window.innerWidth/18, window.innerHeight/10);
+	 	ctx.fillText("You're the last line of defence, soldier. Prepare yourself, they'll arrive once you've shot 5 lasers", window.innerWidth/18, window.innerHeight/8);
 	}
 
-	this.player.render();
-	ctx.fillStyle = game.rgb(0,0,0);
- 	ctx.font = "bold 18px serif";
-	ctx.fillText("Pause", window.innerWidth/13, window.innerHeight/30);
- 	ctx.fillText("Current Score: " + this.score, window.innerWidth - window.innerWidth/5, window.innerHeight/40);
- 	ctx.fillText("High Score: " + game.score, window.innerWidth - window.innerWidth/5, window.innerHeight/20);
+	else
+	{
+		//if(game.currentLevel == 2)
+		//{
+		//	this.enemySpeed += 10;
+		//}
+		for(var i = 0; i < this.bullets.length; i++)
+		{
+		 	this.bullets[i].render();
+		}
+		//for(var i = 0; i < this.enemies.length; i++)
+		//{
+		//	this.enemies[i].render();
+		//}
+		for(var i = 0; i < this.buttons.length; i++)
+		{
+		 	this.buttons[i].draw();
+		}
+
+		this.player.render();
+		ctx.fillStyle = game.rgb(200,200,200);
+	 	ctx.font = "bold 18px serif";
+	 	ctx.fillText("Current Score: " + this.score, window.innerWidth - window.innerWidth/5, window.innerHeight/40);
+	 	ctx.fillText("High Score: " + game.score, window.innerWidth - window.innerWidth/5, window.innerHeight/20);
+	}
 }
 
 GameScene.prototype.input = function(x,y){
-	this.bullets.push(new Bullet(this.player.x + this.player.width/2, this.player.y + this.player.height/2, x, y));
-	this.gunSound.play();
-	this.gunSound.currentTime = 0;
-	this.bulletsFired++;
+	//this.bullets.push(new Bullet(this.player.x + this.player.width, this.player.y + this.player.height/2, x, y));
+	//this.gunSound.play();
+	//this.gunSound.currentTime = 0;
+	//this.bulletsFired++;
 	for(var i = 0; i < this.buttons.length; i++)
 	{
 		this.buttons[i].isClicked(x,y);
 	}
+	if(x > window.innerWidth/2)
+	{
+		this.bullets.push(new Bullet(this.player.x + this.player.width, this.player.y + this.player.height/2, this.bulletImg));
+		this.bulletsFired++;
+	}
+	else
+		this.player.moveCommand(x,y);
 }
 
 GameScene.prototype.detectCollisions = function(bullets, entities){	
@@ -191,15 +224,20 @@ GameScene.prototype.gameOver = function(){
 	this.score = 0;
 	game.currentLevel = 1;
 	this.changedLevel = false;
-	this.soundtrack.pause();
-	this.soundtrack.currentTime = 0;
+	//this.soundtrack.pause();
+	//this.soundtrack.currentTime = 0;
 	game.sceneManager.goToScene("Game Over");
 	console.log("Games over pal");
 }
 
 GameScene.prototype.onTouchStart = function(x,y){	
-	this.bullets.push(new Bullet(this.player.x + this.player.width/2, this.player.y + this.player.height/2, x, y));
-	this.bulletsFired++;
+	if(x > window.innerWidth/10)
+	{
+		this.bullets.push(new Bullet(this.player.x + this.player.width, this.player.y + this.player.height/2, x, y));
+		this.bulletsFired++;
+	}
+	else
+		this.player.moveCommand(x,y);
 
 	for(var i = 0; i < this.buttons.length; i++)
 	{
@@ -211,4 +249,5 @@ GameScene.prototype.onTouchMove = function(x,y){
 }
 
 GameScene.prototype.onTouchEnd = function(x,y){
+	this.player.stopMoving();
 }
