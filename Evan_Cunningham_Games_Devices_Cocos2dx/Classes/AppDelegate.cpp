@@ -12,9 +12,10 @@ AppDelegate::~AppDelegate() {
 bool AppDelegate::applicationDidFinishLaunching() {
 	auto director = Director::getInstance();
 	auto glview = director->getOpenGLView();
+	//comment out when building to android
 	if (!glview) {
-		glview = GLViewImpl::create("Hello World");
-		glview->setFrameSize(1280, 720);
+		glview = GLViewImpl::create("Planet Defence");
+		glview->setFrameSize(1000, 600);
 		director->setOpenGLView(glview);
 	}
 

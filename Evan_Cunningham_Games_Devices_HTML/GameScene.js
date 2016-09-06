@@ -2,6 +2,7 @@ function GameScene(){
 	this.title = "Game";
 	this.bullets = [];
 	this.enemies = [];
+	this.particles = [];
 	this.spawnTimer = 100;
 	this.timeSinceSpawn = 0;
 	//rate of increase in spawn rate (higher number = slower)
@@ -12,7 +13,7 @@ function GameScene(){
 	this.playerHealth = 100;
 	this.changedLevel = false;
 	this.buttonWidth = window.innerWidth/12;
-	this.enemySpeed = 5;
+	this.enemySpeed = 7;
 	this.tutorialComplete = false;
 	//loading files
 	this.playerImg = new Image();
@@ -27,9 +28,7 @@ function GameScene(){
 	this.spaceImg.src = 'resources/HighRes/background.png';
 	this.bulletImg.src = 'resources/HighRes/laser.png';
 	this.earthImg.src = 'resources/HighRes/earth.png';
-	//this.gunSound = new Audio("gun.wav");
 	//objects
-	this.buttons.push(new Button(game.sceneManager.goToScene, "Pause", window.innerWidth/20,0,window.innerWidth/12,window.innerHeight/20, this.pauseImg));
 	this.player = new Player(window.innerWidth/19,window.innerHeight/2, this.playerImg);
 }
 GameScene.prototype = new Scene();
@@ -57,11 +56,7 @@ GameScene.prototype.update = function()
 	else
 	{
 		this.player.update();
-		//this.soundtrack.play();
-		//if(this.soundtrack.ended){
-		//	this.soundtrack.currentTime = 0;
-		//	this.soundtrack.play();
-		//}
+		this.particles.push(new Particles(this.player.x, this.player.y + this.player.height/2, -1));
 		//updating bullets, then enemies
 		for(var i = 0; i < this.bullets.length; i++)
 		{
@@ -87,6 +82,15 @@ GameScene.prototype.update = function()
 				}
 			}
 				
+		}
+		//particles
+		for(var i = 0; i < this.particles.length; i++)
+		{
+			this.particles[i].update();		
+			if(this.particles[i].isAlive == false)
+			{
+				this.particles.splice(i, 1);
+			}		
 		}
 		//spawning enemies
 		if(this.timeSinceSpawn >= this.spawnTimer)
@@ -135,10 +139,6 @@ GameScene.prototype.render = function()
 
 	else
 	{
-		//if(game.currentLevel == 2)
-		//{
-		//	this.enemySpeed += 10;
-		//}
 		for(var i = 0; i < this.bullets.length; i++)
 		{
 		 	this.bullets[i].render();
@@ -150,6 +150,10 @@ GameScene.prototype.render = function()
 		for(var i = 0; i < this.buttons.length; i++)
 		{
 		 	this.buttons[i].draw();
+		}
+		for(var i = 0; i < this.particles.length; i++)
+		{
+		 	this.particles[i].render();
 		}
 
 		this.player.render();
@@ -164,8 +168,6 @@ GameScene.prototype.render = function()
 }
 
 GameScene.prototype.input = function(x,y){
-	//this.gunSound.play();
-	//this.gunSound.currentTime = 0;
 	for(var i = 0; i < this.buttons.length; i++)
 	{
 		this.buttons[i].isClicked(x,y);
@@ -193,11 +195,6 @@ GameScene.prototype.detectCollisions = function(bullets, entities){
 				entities.splice(i,1);
 				this.score+= 10;
 				this.bulletsFired = 0;
-				//if(this.score > 300 && this.changedLevel == false){
-				//	game.currentLevel = 2;
-				//	this.changedLevel = true;
-				//	this.level2Sfx.play();
-				//}
 			}
 		}
 	}
@@ -215,7 +212,6 @@ GameScene.prototype.detectDeath = function(killers, life){
 			this.playerHealth -= 20;
 			if(this.playerHealth <= 0)
 			{
-			//this.killedSfx.play();
 			this.gameOver();
 			}
 		}
@@ -243,8 +239,6 @@ GameScene.prototype.gameOver = function(){
 	this.score = 0;
 	game.currentLevel = 1;
 	this.changedLevel = false;
-	//this.soundtrack.pause();
-	//this.soundtrack.currentTime = 0;
 	game.sceneManager.goToScene("Game Over");
 }
 

@@ -11,6 +11,8 @@ public:
 	virtual bool init();
 	void activateGameScene(Ref *pSender); 
 	void activateMainMenuScene(Ref *pSender);
+private:
+	cocos2d::Size visibleSize;
 
 	CREATE_FUNC(GameOver);
 };
