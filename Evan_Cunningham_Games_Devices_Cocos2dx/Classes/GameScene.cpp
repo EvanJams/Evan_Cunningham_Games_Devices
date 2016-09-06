@@ -19,7 +19,9 @@ bool GameScreen::init()
 	{
 		return false;
 	}
+	bulletsFired = 0;
 	timeSinceFired = 0;
+	bullets.clear();
 	Size visibleSize = Director::getInstance()->getVisibleSize();
 	Point origin = Director::getInstance()->getVisibleOrigin();
 	gameState = GameState::GameInit;
@@ -35,12 +37,9 @@ bool GameScreen::init()
 		Sprite::create("GameScreen/earth.png");
 	backImage2->setPosition(Point(visibleSize.width / 2, visibleSize.height / 2));
 	backImage2->setScaleX(visibleSize.width / 1980);
-	backImage2->setScaleY(visibleSize.height / 511);
-	
+	backImage2->setScaleY(visibleSize.height / 511);	
 	backImage2->setPositionX(visibleSize.width/40);
-
 	this->addChild(backImage2);
-
 	//Player
 	cocos2d::DrawNode* playerDrawNode = cocos2d::DrawNode::create();
 	m_Player = new Player(visibleSize.width / 12, visibleSize.height / 2, visibleSize.width / 3200, visibleSize.height / 3000, playerDrawNode);
@@ -61,6 +60,13 @@ bool GameScreen::init()
 	m_Label->setPosition(9 * visibleSize.width / 10, 1 * visibleSize.height / 12);
 	titleDrawNode->addChild(m_Label);
 	this->addChild(titleDrawNode);
+	//drawing tutorial
+	cocos2d::DrawNode* tutorialDrawNode = cocos2d::DrawNode::create();
+	m_tutorialLabel = Label::create("Tap the left side of the screen to move, and the right side to shoot. Shoot 5 bullets to begin!", "Helvetica", 24, CCSizeMake(500, 128), kCCTextAlignmentCenter);
+	m_tutorialLabel->setPosition(visibleSize.width / 2, visibleSize.height / 2);
+	tutorialDrawNode->addChild(m_tutorialLabel);
+	this->addChild(tutorialDrawNode);
+
 	//Enemy
 	spawnTimer = 20;
 	timeSinceSpawn = 0;
@@ -80,25 +86,10 @@ void GameScreen::update(float dt){
 		break;
 	case GameState::GameRunning:
 
-		timeSinceSpawn += dt * 10;
 		m_Label->setString("Score: " + std::to_string(m_score) + "\n Highscore: " + std::to_string(highScore));
 		m_scoreLabel->setString("Ship Health: " + std::to_string(m_health) + "        Colonies Left: " + std::to_string(m_earthHealth));
 		m_Player->Update();
-		timeSinceFired++;
-		if (spawnTimer <= timeSinceSpawn)
-		{
-			//random spawns
-			float enemyPass = rand() % 100;
-			float xEnemyPass = visibleSize.width;
-			float yEnemyPass = (enemyPass / 100) * visibleSize.height;
-			cocos2d::DrawNode* enemyDrawNode = cocos2d::DrawNode::create();
-			enemies.push_back(Enemy(xEnemyPass, yEnemyPass, 0, m_Player->getYPos(), visibleSize.width / 5000, visibleSize.height / 5000, enemyDrawNode));
-			this->addChild(enemyDrawNode);
-			timeSinceSpawn = 0;
-			if (spawnTimer > 5)
-				spawnTimer--;
-		}
-
+		//bullets
 		for (std::list<Bullet>::iterator curr = bullets.begin(); curr != bullets.end(); curr++)
 		{
 			curr->update();
@@ -108,20 +99,6 @@ void GameScreen::update(float dt){
 				bullets.remove(*curr);
 				break;
 			}
-		}
-		for (std::list<Enemy>::iterator curr = enemies.begin(); curr != enemies.end(); curr++)
-		{
-			curr->update(m_Player->getYPos());
-			if (curr->getXPos() < 0)
-			{
-				m_earthHealth -= 1;
-				enemies.remove(*curr);
-				break;
-			}
-		}
-
-		if (m_earthHealth < 0){
-			GameScreen::activateGameOverScene(this);
 		}
 		//Particles
 		cocos2d::DrawNode* particleDrawNode = cocos2d::DrawNode::create();
@@ -136,8 +113,48 @@ void GameScreen::update(float dt){
 				break;
 			}
 		}
-		DetectCollisions();
-		DetectDeath();
+
+		timeSinceSpawn += dt * 10;
+		if (bulletsFired > 4 || tutorialPassed == true)
+		{
+			m_tutorialLabel->setString("");
+			tutorialPassed = true;
+			timeSinceFired++;
+			if (spawnTimer <= timeSinceSpawn)
+			{
+				//random spawns
+				float enemyPass = rand() % 100;
+				float xEnemyPass = visibleSize.width;
+				float yEnemyPass = (enemyPass / 100) * visibleSize.height;
+				cocos2d::DrawNode* enemyDrawNode = cocos2d::DrawNode::create();
+				enemies.push_back(Enemy(xEnemyPass, yEnemyPass, 0, m_Player->getYPos(), visibleSize.width / 5000, visibleSize.height / 5000, enemyDrawNode));
+				this->addChild(enemyDrawNode);
+				timeSinceSpawn = 0;
+				if (spawnTimer > 5)
+					spawnTimer--;
+			}
+
+			for (std::list<Enemy>::iterator curr = enemies.begin(); curr != enemies.end(); curr++)
+			{
+				curr->update(m_Player->getYPos());
+				if (curr->getXPos() < 0)
+				{
+					m_earthHealth -= 1;
+					enemies.remove(*curr);
+					break;
+				}
+			}
+
+			if (m_earthHealth < 0){
+				GameScreen::activateGameOverScene(this);
+			}
+
+			DetectCollisions();
+			DetectDeath();
+		}
+		else
+		{
+		}
 	}
 }
 
@@ -153,6 +170,7 @@ void GameScreen::addEvents(){
 			bullets.push_back(Bullet(visibleSize.width / 18, m_Player->getYPos(), 1, visibleSize.width, visibleSize.width/ 9000, visibleSize.height / 3000, bulletDrawNode));
 			this->addChild(bulletDrawNode);
 			timeSinceFired = 0;
+			bulletsFired++;
 		}
 		else
 		{
@@ -224,6 +242,9 @@ void GameScreen::DetectDeath(){
 				{
 					highScore = m_score;
 				}
+				enemies.clear();
+				bullets.clear();
+				m_Player->~Player();
 				GameScreen::activateGameOverScene(this);
 			}
 			break;

@@ -3,8 +3,6 @@ function Game(){
 	this.sceneManager = new SceneManager();
 	this.score = 0;
 	this.previousScore = 0;
-	this.currentLevel = 1;
-	this.colourBlind = false;
 	this.backImage = new Image();
 	this.backImage.src = 'resources/HighRes/menu.jpg';
 }

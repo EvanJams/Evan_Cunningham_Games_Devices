@@ -21,6 +21,7 @@ private:
 	cocos2d::Sprite* m_sprite;
 	cocos2d::Label * m_Label;
 	cocos2d::Label * m_scoreLabel;
+	cocos2d::Label * m_tutorialLabel;
 	GameState gameState;
 	//timer
 	float timeSinceSpawn;
@@ -30,6 +31,7 @@ private:
 	int m_earthHealth = 10;
 	int m_health = 100;
 	int timeSinceFired = 0;
+	int bulletsFired = 0;
 	//create lists of enemies & bullets
 	std::list<Enemy> enemies;
 	std::list<Bullet> bullets;
