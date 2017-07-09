@@ -4,7 +4,7 @@ function TitleScene(){
 	this.titleImg = new Image();
 	this.playImg.src = 'resources/HighRes/playButton.png';
 	this.titleImg.src = 'resources/HighRes/title.png';
-	this.buttons.push(new Button(game.sceneManager.goToScene, "The Game", (window.innerWidth/2 - window.innerWidth/10), window.innerHeight/2, window.innerWidth/10, window.innerHeight/20, this.playImg));
+	this.buttons.push(new Button(game.sceneManager.goToScene, "Game", (window.innerWidth/2 - window.innerWidth/10), window.innerHeight/2, window.innerWidth/10, window.innerHeight/20, this.playImg));
 
 }
 
