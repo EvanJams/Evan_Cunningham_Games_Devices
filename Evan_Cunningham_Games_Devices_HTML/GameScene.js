@@ -12,10 +12,10 @@ function GameScene(){
 	this.planetHealth = 10;
 	this.playerHealth = 100;
 	this.changedLevel = false;
-	this.buttonWidth = window.innerWidth/12;
 	this.enemySpeed = 7;
 	this.tutorialComplete = false;
-	this.gameRunning = true;
+
+	this.groundHeight = 9 * window.innerHeight/10;
 	//loading files
 	this.playerImg = new Image();
 	this.pauseImg = new Image();
@@ -29,16 +29,25 @@ function GameScene(){
 	this.spaceImg.src = 'resources/HighRes/background.png';
 	this.bulletImg.src = 'resources/HighRes/laser.png';
 	this.earthImg.src = 'resources/HighRes/earth.png';
+	//Game Update
+	this.worldMoveSpeed = window.innerWidth/100;
+	this.xPosBackground1 = 0;
+	this.xPosBackground2 = window.innerWidth;
+	GameScene.gameRunning = true;
 	//objects
-	//this.player = new Player(window.innerWidth/19,window.innerHeight/2, this.playerImg);
-	this.buttons.push(new Button(this.pauseGame, "Game", (window.innerWidth/2 - window.innerWidth/10), window.innerHeight/2, window.innerWidth/10, window.innerHeight/20, this.pauseImg));
+	this.player = new Player(window.innerWidth/19, this.groundHeight, this.playerImg);
+	this.buttons.push(new Button(this.pauseGame, "Game", (window.innerWidth/10 - window.innerWidth/10), window.innerHeight/40, window.innerWidth/10, window.innerHeight/20, this.pauseImg));
 }
 GameScene.prototype = new Scene();
 
 GameScene.prototype.update = function()
 {	
-	if(this.gameRunning)
+	if(!GameScene.gameRunning){
+
+	}
+	else
 	{
+		this.worldMovement();
 		/*
 		if(this.tutorialComplete == false)
 		{
@@ -60,7 +69,9 @@ GameScene.prototype.update = function()
 		}
 		else
 		{
+			*/
 			this.player.update();
+			/*
 			this.particles.push(new Particles(this.player.x, this.player.y + this.player.height/2, -1));
 			//updating bullets, then enemies
 			for(var i = 0; i < this.bullets.length; i++)
@@ -124,8 +135,14 @@ GameScene.prototype.update = function()
 
 GameScene.prototype.render = function()
 {	
-	ctx.drawImage(this.spaceImg, 0, 0, window.innerWidth, window.innerHeight);
-	ctx.drawImage(this.earthImg, 0, 0, window.innerWidth/20, window.innerHeight);
+	ctx.drawImage(this.spaceImg, this.xPosBackground1, 0, window.innerWidth + window.innerWidth/10, window.innerHeight);
+	ctx.drawImage(this.spaceImg, this.xPosBackground2, 0, window.innerWidth + window.innerWidth/10, window.innerHeight);
+
+	ctx.fillStyle = game.rgb(200,0,0);
+	ctx.rect(0, this.groundHeight + window.innerHeight/50, window.innerWidth, window.innerHeight/50);
+	ctx.fill();
+	//ctx.drawImage(this.earthImg, 0, 4 * window.innerHeight / 5, window.innerWidth, window.innerHeight / 5);
+
 	/*
 	if(this.tutorialComplete == false)
 	{
@@ -138,8 +155,8 @@ GameScene.prototype.render = function()
 		{
 		 	this.buttons[i].draw();
 		}
-		/*
 		this.player.render();
+		/*
 		ctx.fillStyle = game.rgb(200,200,200);
 	 	ctx.font = "bold 18px serif";
 	 	ctx.fillText("Welcome to Planet Defence. Tap the left side of the screen to move up and down, and the right side to shoot!", window.innerWidth/18, window.innerHeight/15);
@@ -191,8 +208,8 @@ GameScene.prototype.input = function(x,y){
 	}
 
 	else
-		this.player.moveCommand(x,y);
-	*/
+		*/
+		this.player.moveCommand(x,y);	
 }
 /*
 GameScene.prototype.detectCollisions = function(bullets, entities){	
@@ -256,17 +273,27 @@ GameScene.prototype.gameOver = function(){
 	game.sceneManager.goToScene("Game Over");
 }
 */
+GameScene.prototype.worldMovement = function(){
+	//2 background images constantly moving left, then resetting when out of view
+	if(this.xPosBackground1 > -window.innerWidth)
+	{
+		this.xPosBackground1 -= this.worldMoveSpeed;
+	}
+	else{
+		this.xPosBackground1 = window.innerWidth;
+	}
+	if(this.xPosBackground2 > -window.innerWidth)
+	{
+		this.xPosBackground2 -= this.worldMoveSpeed;
+	}
+	else{
+		this.xPosBackground2 = window.innerWidth;
+	}
+}
 
 GameScene.prototype.pauseGame = function(){
-	if(this.gameRunning == true)
-	{
-		this.gameRunning = false;
-	}
-	else
-	{
-		this.gameRunning = true;
-	}
-	console.log(this.gameRunning);
+
+	GameScene.gameRunning = !GameScene.gameRunning;
 }
 
 GameScene.prototype.onTouchStart = function(x,y){	
@@ -277,8 +304,9 @@ GameScene.prototype.onTouchStart = function(x,y){
 		this.bulletsFired++;
 	}
 	else
-		this.player.moveCommand(x,y);
 */
+		this.player.moveCommand();
+
 	for(var i = 0; i < this.buttons.length; i++)
 	{
 		this.buttons[i].isClicked(x,y);
