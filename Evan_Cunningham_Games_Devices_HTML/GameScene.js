@@ -1,20 +1,18 @@
 function GameScene(){
 	this.title = "Game";
-	//this.bullets = [];
-	//this.enemies = [];
+	this.enemies = [];
 	//this.particles = [];
-	this.spawnTimer = 100;
+	this.spawnTimer = 60;
 	this.timeSinceSpawn = 0;
 	//rate of increase in spawn rate (higher number = slower)
-	this.spawnLimit = 90;
+	this.spawnLimit = 40;
 	this.score = 0;
 	this.bulletsFired = 0;
 	this.planetHealth = 10;
 	this.playerHealth = 100;
 	this.changedLevel = false;
-	this.enemySpeed = 7;
+	this.enemySpeed = 18;
 	this.tutorialComplete = false;
-
 	this.groundHeight = 9 * window.innerHeight/10;
 	//loading files
 	this.playerImg = new Image();
@@ -35,7 +33,7 @@ function GameScene(){
 	this.xPosBackground2 = window.innerWidth;
 	GameScene.gameRunning = true;
 	//objects
-	this.player = new Player(window.innerWidth/19, this.groundHeight, this.playerImg);
+	this.player = new Player(window.innerWidth/15, this.groundHeight, this.playerImg);
 	this.buttons.push(new Button(this.pauseGame, "Game", (window.innerWidth/10 - window.innerWidth/10), window.innerHeight/40, window.innerWidth/10, window.innerHeight/20, this.pauseImg));
 }
 GameScene.prototype = new Scene();
@@ -83,22 +81,35 @@ GameScene.prototype.update = function()
 					this.bullets.splice(i,1);
 				}
 			}
-		
+		*/
 			for(var i = 0; i < this.enemies.length; i++)
 			{
-				this.enemies[i].update(this.player.y);
-				if(this.enemies[i].x > window.innerWidth * 2 || this.enemies[i].x < 0 ||
-					this.enemies[i].y < 0 || this.enemies[i].y > window.innerHeight)
+				this.enemies[i].update();
+				if(this.enemies[i].x < 0)
 				{
 					this.enemies.splice(i, 1);
-					this.planetHealth--;
-					if(this.planetHealth <= 0)
-					{
-						this.gameOver();
-					}
 				}
 					
 			}
+			//spawning enemies
+			if(this.timeSinceSpawn >= this.spawnTimer)
+			{
+				//Random Spawns for enemies
+				var xEnemyPass = window.innerWidth + window.innerWidth/5;
+				this.enemies.push(new Enemy(xEnemyPass, this.groundHeight, this.enemyImg, this.enemySpeed));
+				//resetting timer for enemy spawn
+				this.timeSinceSpawn = 0;
+				if(this.spawnTimer > this.spawnLimit)
+				{
+					this.spawnTimer--;
+					this.enemySpeed++;
+				}
+				console.log("enemyspawned");
+			}
+			else{this.timeSinceSpawn++}
+			//functions
+			this.detectCollisions(this.player, this.enemies);
+			/*
 			//particles
 			for(var i = 0; i < this.particles.length; i++)
 			{
@@ -108,25 +119,7 @@ GameScene.prototype.update = function()
 					this.particles.splice(i, 1);
 				}		
 			}
-			//spawning enemies
-			if(this.timeSinceSpawn >= this.spawnTimer)
-			{
-				//Random Spawns for enemies
-				var enemyPos = Math.random() * window.innerHeight;
-				var xEnemyPass = window.innerWidth + window.innerWidth/5;
-				var yEnemyPass = enemyPos;
-				this.enemies.push(new Enemy(xEnemyPass, yEnemyPass, this.enemyImg, this.enemySpeed));
-				//resetting timer for enemy spawn
-				this.timeSinceSpawn = 0;
-				if(this.spawnTimer > this.spawnLimit)
-				{
-					this.spawnTimer--;
-					this.enemySpeed++;
-				}
-			}
-			else{this.timeSinceSpawn++}
-			//functions
-			this.detectCollisions(this.bullets, this.enemies);
+
 			this.detectDeath(this.enemies, this.player);
 		}
 		*/
@@ -139,7 +132,7 @@ GameScene.prototype.render = function()
 	ctx.drawImage(this.spaceImg, this.xPosBackground2, 0, window.innerWidth + window.innerWidth/10, window.innerHeight);
 
 	ctx.fillStyle = game.rgb(200,0,0);
-	ctx.rect(0, this.groundHeight + window.innerHeight/50, window.innerWidth, window.innerHeight/50);
+	ctx.rect(0, this.groundHeight + window.innerHeight/500, window.innerWidth, window.innerHeight/500);
 	ctx.fill();
 	//ctx.drawImage(this.earthImg, 0, 4 * window.innerHeight / 5, window.innerWidth, window.innerHeight / 5);
 
@@ -170,10 +163,12 @@ GameScene.prototype.render = function()
 		{
 		 	this.bullets[i].render();
 		}
+		*/
 		for(var i = 0; i < this.enemies.length; i++)
 		{
 			this.enemies[i].render();
 		}
+		/*
 		for(var i = 0; i < this.buttons.length; i++)
 		{
 		 	this.buttons[i].draw();
@@ -211,25 +206,22 @@ GameScene.prototype.input = function(x,y){
 		*/
 		this.player.moveCommand(x,y);	
 }
-/*
-GameScene.prototype.detectCollisions = function(bullets, entities){	
+
+GameScene.prototype.detectCollisions = function(player, entities){	
 	for(var i = 0; i < entities.length; i++)
 	{
-		for(var j = 0; j < bullets.length; j++)
+		if(player.x < entities[i].x + entities[i].width &&
+			player.x + player.width > entities[i].x &&
+			player.y < entities[i].y + entities[i].height &&
+			player.y + player.height > entities[i].y)
 		{
-			if(bullets[j].x < entities[i].x + entities[i].width &&
-				bullets[j].x + bullets[j].width > entities[i].x &&
-				bullets[j].y < entities[i].y + entities[i].height &&
-				bullets[j].y + bullets[j].height > entities[i].y)
-			{
-				bullets.splice(j,1);
-				entities.splice(i,1);
-				this.score+= 10;
-				this.bulletsFired = 0;
-			}
+			entities.splice(i,1);
+			player.x -= 15;
+			console.log("hit");
 		}
 	}
 }
+/*
 
 GameScene.prototype.detectDeath = function(killers, life){
 	for(var i =0; i < killers.length; i++)

@@ -28,7 +28,7 @@ Player.prototype.moveCommand = function(){
 		this.goingUp = false;
 	}
 	*/
-	if(this.y == this.groundHeight){
+	if(this.y == this.groundHeight - this.height/2){
 		this.yVelocity = -10;
 	}
 }
@@ -47,12 +47,12 @@ Player.prototype.stop = function(){
 }
 
 Player.prototype.update = function(){	
-	if(this.y < this.groundHeight){
+	if(this.y < this.groundHeight - this.height / 2){
 		this.yVelocity += this.gravity;
 	}
-	else if(this.y > this.groundHeight){
+	else if(this.y > this.groundHeight - this.height/2){
 		this.yVelocity = 0;
-		this.y = this.groundHeight;
+		this.y = this.groundHeight - this.height/2;
 	}
 	this.y += this.yVelocity;
 	console.log(this.y, this.yVelocity);
