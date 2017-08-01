@@ -14,7 +14,7 @@ bool AppDelegate::applicationDidFinishLaunching() {
 	auto glview = director->getOpenGLView();
 	//comment out when building to android
 	if (!glview) {
-		glview = GLViewImpl::create("Planet Defence");
+		glview = GLViewImpl::create("Box Hoppers");
 		glview->setFrameSize(1000, 600);
 		director->setOpenGLView(glview);
 	}
