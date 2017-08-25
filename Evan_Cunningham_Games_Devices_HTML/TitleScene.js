@@ -14,7 +14,7 @@ TitleScene.prototype.render = function(){
 	ctx.drawImage(game.backImage, 0, 0, window.innerWidth, window.innerHeight);
 	//Game Title 3D text
 
-	ctx.drawImage(this.titleImg, window.innerWidth / 8, window.innerHeight / 8, window.innerWidth / 1.5, window.innerHeight / 10);
+	ctx.drawImage(this.titleImg, window.innerWidth / 8, window.innerHeight / 8, window.innerWidth / 1.5, window.innerHeight / 4);
  	
 	for(var i = 0; i < this.buttons.length; i++)
 	{

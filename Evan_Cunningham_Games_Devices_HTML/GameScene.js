@@ -7,13 +7,11 @@ function GameScene(){
 	//rate of increase in spawn rate (higher number = slower)
 	this.spawnLimit = 40;
 	this.score = 0;
-	this.bulletsFired = 0;
-	this.planetHealth = 10;
-	this.playerHealth = 100;
 	this.changedLevel = false;
 	this.enemySpeed = 18;
 	this.tutorialComplete = false;
 	this.groundHeight = 9 * window.innerHeight/10;
+	this.killBoxX = window.innerWidth/25;
 	//loading files
 	this.playerImg = new Image();
 	this.pauseImg = new Image();
@@ -21,7 +19,7 @@ function GameScene(){
 	this.spaceImg = new Image();
 	this.bulletImg = new Image();
 	this.earthImg = new Image();
-	this.playerImg.src = 'resources/HighRes/player.png';
+	this.playerImg.src = 'resources/HighRes/player1.png';
 	this.pauseImg.src = 'resources/HighRes/pauseButton.png';
 	this.enemyImg.src = 'resources/HighRes/enemyship.png';
 	this.spaceImg.src = 'resources/HighRes/background.png';
@@ -109,6 +107,7 @@ GameScene.prototype.update = function()
 			else{this.timeSinceSpawn++}
 			//functions
 			this.detectCollisions(this.player, this.enemies);
+			this.detectDeath(this.player);
 			/*
 			//particles
 			for(var i = 0; i < this.particles.length; i++)
@@ -120,7 +119,6 @@ GameScene.prototype.update = function()
 				}		
 			}
 
-			this.detectDeath(this.enemies, this.player);
 		}
 		*/
 	}
@@ -179,10 +177,12 @@ GameScene.prototype.render = function()
 		}
 
 		this.player.render();
+		*/
 		ctx.fillStyle = game.rgb(200,200,200);
 	 	ctx.font = "bold 18px serif";
 	 	ctx.fillText("Current Score: " + this.score, window.innerWidth - window.innerWidth/5, window.innerHeight/40);
 	 	ctx.fillText("High Score: " + game.score, window.innerWidth - window.innerWidth/5, window.innerHeight/20);
+	 	/*
 	 	ctx.fillText("Planet Health: " + this.planetHealth, window.innerWidth/18, window.innerHeight - window.innerHeight/20);
 	 	ctx.fillText("Ship Health: " + this.playerHealth, window.innerWidth - window.innerWidth/5, window.innerHeight - window.innerHeight / 20);
 
@@ -195,16 +195,7 @@ GameScene.prototype.input = function(x,y){
 	{
 		this.buttons[i].isClicked(x,y);
 	}
-	/*
-	if(x > window.innerWidth/2)
-	{
-		this.bullets.push(new Bullet(this.player.x + this.player.width, this.player.y + this.player.height/2, this.bulletImg));
-		this.bulletsFired++;
-	}
-
-	else
-		*/
-		this.player.moveCommand(x,y);	
+	this.player.moveCommand(x,y);	
 }
 
 GameScene.prototype.detectCollisions = function(player, entities){	
@@ -217,27 +208,20 @@ GameScene.prototype.detectCollisions = function(player, entities){
 		{
 			entities.splice(i,1);
 			player.x -= 15;
-			console.log("hit");
+		}
+		if(entities[i].x < 0)
+		{
+			this.score += 10;
+			entities.splice(i, 1);
 		}
 	}
 }
-/*
 
-GameScene.prototype.detectDeath = function(killers, life){
-	for(var i =0; i < killers.length; i++)
+
+GameScene.prototype.detectDeath = function(character){
+	if(character.x <= this.killBoxX)
 	{
-		if(killers[i].x < life.x + life.width &&
-				killers[i].x + killers[i].width > life.x &&
-				killers[i].y < life.y + life.height &&
-				killers[i].y + killers[i].height > life.y)
-		{
-			killers.splice(i,1);
-			this.playerHealth -= 20;
-			if(this.playerHealth <= 0)
-			{
-			this.gameOver();
-			}
-		}
+		this.gameOver();
 	}
 }
 
@@ -249,22 +233,19 @@ GameScene.prototype.gameOver = function(){
 	game.previousScore = this.score;
 	//Resetting arrays and error prevention
 	this.paused = false;
-	this.bullets = [];
 	this.enemies = [];
-	this.spawnTimer = 100;
+	this.spawnTimer = 60;
 	this.timeSinceSpawn = 0;
-	this.enemySpeed = 5;
+	this.enemySpeed = 18;
 	//resetting the player, score and bullets
-	this.player.y = window.innerHeight/2;
-	this.playerHealth = 100;
-	this.planetHealth = 10;
-	this.bulletsFired = 0;
+	this.player.x = window.innerWidth/15;
+	this.player.y = this.groundHeight;
 	this.score = 0;
-	game.currentLevel = 1;
-	this.changedLevel = false;
+	//game.currentLevel = 1;
+	//this.changedLevel = false;
 	game.sceneManager.goToScene("Game Over");
 }
-*/
+
 GameScene.prototype.worldMovement = function(){
 	//2 background images constantly moving left, then resetting when out of view
 	if(this.xPosBackground1 > -window.innerWidth)
