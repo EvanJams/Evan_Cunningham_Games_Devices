@@ -1,95 +1,67 @@
 function GameScene(){
 	this.title = "Game";
 	this.enemies = [];
-	//this.particles = [];
+	this.particles = [];
 	this.spawnTimer = 60;
 	this.timeSinceSpawn = 0;
 	//rate of increase in spawn rate (higher number = slower)
 	this.spawnLimit = 40;
 	this.score = 0;
 	this.changedLevel = false;
-	this.enemySpeed = 18;
-	this.tutorialComplete = false;
+	this.enemySpeed = window.innerWidth/80;
+	//this.tutorialComplete = false;
+	this.enemyCount = 0;
 	this.groundHeight = 9 * window.innerHeight/10;
 	this.killBoxX = window.innerWidth/25;
 	//loading files
 	this.playerImg = new Image();
+	this.playerAnimationImg = new Image();
 	this.pauseImg = new Image();
 	this.enemyImg = new Image();
-	this.spaceImg = new Image();
-	this.bulletImg = new Image();
-	this.earthImg = new Image();
-	this.playerImg.src = 'resources/HighRes/player1.png';
+	this.backImg = new Image();
+	this.doomImg = new Image();
+	this.playerImg.src = 'resources/HighRes/player.png';
+	this.playerAnimationImg.src = 'resources/HighRes/player1.png';
 	this.pauseImg.src = 'resources/HighRes/pauseButton.png';
-	this.enemyImg.src = 'resources/HighRes/enemyship.png';
-	this.spaceImg.src = 'resources/HighRes/background.png';
-	this.bulletImg.src = 'resources/HighRes/laser.png';
-	this.earthImg.src = 'resources/HighRes/earth.png';
+	this.enemyImg.src = 'resources/HighRes/enemy.png';
+	this.backImg.src = 'resources/HighRes/background.png';
+	this.doomImg.src = 'resources/HighRes/doom.png';
 	//Game Update
 	this.worldMoveSpeed = window.innerWidth/100;
 	this.xPosBackground1 = 0;
 	this.xPosBackground2 = window.innerWidth;
+	this.animationCount = 0;
+	this.animationFrame = 0;
 	GameScene.gameRunning = true;
 	//objects
-	this.player = new Player(window.innerWidth/15, this.groundHeight, this.playerImg);
+	this.player = new Player(window.innerWidth/15, this.groundHeight, this.playerImg, this.playerAnimationImg);
 	this.buttons.push(new Button(this.pauseGame, "Game", (window.innerWidth/10 - window.innerWidth/10), window.innerHeight/40, window.innerWidth/10, window.innerHeight/20, this.pauseImg));
 }
 GameScene.prototype = new Scene();
 
 GameScene.prototype.update = function()
 {	
+	//ensure game isn't paused before updating
 	if(!GameScene.gameRunning){
 
 	}
 	else
 	{
 		this.worldMovement();
-		/*
-		if(this.tutorialComplete == false)
+		this.player.update();
+		this.updateLists();
+		//particle system
+		if(this.player.y < this.groundHeight - window.innerHeight/1000)
 		{
-			this.player.update();
-			for(var i = 0; i < this.bullets.length; i++)
-			{
-				this.bullets[i].update();
-				if(this.bullets[i].x > window.innerWidth || this.bullets[i].x < 0 ||
-					this.bullets[i].y < 0 || this.bullets[i].y > window.innerHeight)
-				{
-					this.bullets.splice(i,1);
-				}
-			}
-			if(this.bulletsFired >= 5)
-			{
-				this.tutorialComplete = true;
-				this.bulletsFired = 0;
-			}
+			this.particles.push(new Particles(this.player.x + this.player.width / 3, this.player.y + this.player.height - 3, -1));
 		}
-		else
+		//tutorial logic (enemies spawn at regular intervals to practice and there's no downside to failure)
+		if(game.tutorialComplete == false)
 		{
-			*/
-			this.player.update();
-			/*
-			this.particles.push(new Particles(this.player.x, this.player.y + this.player.height/2, -1));
-			//updating bullets, then enemies
-			for(var i = 0; i < this.bullets.length; i++)
-			{
-				this.bullets[i].update();
-				if(this.bullets[i].x > window.innerWidth || this.bullets[i].x < 0 ||
-					this.bullets[i].y < 0 || this.bullets[i].y > window.innerHeight)
-				{
-					this.bullets.splice(i,1);
-				}
+			if(this.enemyCount >= 2){
+				game.tutorialComplete = true;
 			}
-		*/
-			for(var i = 0; i < this.enemies.length; i++)
-			{
-				this.enemies[i].update();
-				if(this.enemies[i].x < 0)
-				{
-					this.enemies.splice(i, 1);
-				}
-					
-			}
-			//spawning enemies
+			//spawning tutorial enemies
 			if(this.timeSinceSpawn >= this.spawnTimer)
 			{
 				//Random Spawns for enemies
@@ -97,97 +69,121 @@ GameScene.prototype.update = function()
 				this.enemies.push(new Enemy(xEnemyPass, this.groundHeight, this.enemyImg, this.enemySpeed));
 				//resetting timer for enemy spawn
 				this.timeSinceSpawn = 0;
+			}
+			else{this.timeSinceSpawn++}
+		}
+		//game logic (scaling difficulty, collision detection)
+		else
+		{				
+			//spawning game enemies (scaling difficulty)
+			if(this.timeSinceSpawn >= this.spawnTimer)
+			{
+				//Random Spawns for enemies
+				var xEnemyPass = window.innerWidth + window.innerWidth/5;
+				this.enemies.push(new Enemy(xEnemyPass, this.groundHeight, this.enemyImg, this.enemySpeed));
+				//resetting timer for enemy spawn
+				this.timeSinceSpawn = 0;
+				//scaling difficulty
 				if(this.spawnTimer > this.spawnLimit)
 				{
 					this.spawnTimer--;
 					this.enemySpeed++;
 				}
-				console.log("enemyspawned");
 			}
 			else{this.timeSinceSpawn++}
-			//functions
+			//Game functions
 			this.detectCollisions(this.player, this.enemies);
 			this.detectDeath(this.player);
-			/*
-			//particles
-			for(var i = 0; i < this.particles.length; i++)
+			//Doom animation
+			if(this.animationCount > 5)
 			{
-				this.particles[i].update();		
-				if(this.particles[i].isAlive == false)
-				{
-					this.particles.splice(i, 1);
-				}		
+				this.animationFrame++;
+				this.animationCount = 0;
 			}
-
 		}
-		*/
 	}
 }
 
 GameScene.prototype.render = function()
 {	
-	ctx.drawImage(this.spaceImg, this.xPosBackground1, 0, window.innerWidth + window.innerWidth/10, window.innerHeight);
-	ctx.drawImage(this.spaceImg, this.xPosBackground2, 0, window.innerWidth + window.innerWidth/10, window.innerHeight);
-
+	ctx.drawImage(this.backImg, this.xPosBackground1, 0, window.innerWidth + window.innerWidth/10, window.innerHeight);
+	ctx.drawImage(this.backImg, this.xPosBackground2, 0, window.innerWidth + window.innerWidth/10, window.innerHeight);
+/*	ground debug
 	ctx.fillStyle = game.rgb(200,0,0);
 	ctx.rect(0, this.groundHeight + window.innerHeight/500, window.innerWidth, window.innerHeight/500);
-	ctx.fill();
+	ctx.fill(); */
+
 	//ctx.drawImage(this.earthImg, 0, 4 * window.innerHeight / 5, window.innerWidth, window.innerHeight / 5);
-
-	/*
-	if(this.tutorialComplete == false)
+	//drawing enemies, particles and buttons
+	for(var i = 0; i < this.enemies.length; i++)
 	{
-		for(var i = 0; i < this.bullets.length; i++)
-		{
-		 	this.bullets[i].render();
-		}
-		*/
-		for(var i = 0; i < this.buttons.length; i++)
-		{
-		 	this.buttons[i].draw();
-		}
-		this.player.render();
-		/*
-		ctx.fillStyle = game.rgb(200,200,200);
-	 	ctx.font = "bold 18px serif";
-	 	ctx.fillText("Welcome to Planet Defence. Tap the left side of the screen to move up and down, and the right side to shoot!", window.innerWidth/18, window.innerHeight/15);
-	 	ctx.fillText("The amount of human colonies left on earth is displayed at the bottom of the screen, and your ships health is to the right of that.", window.innerWidth/18, window.innerHeight/10);
-	 	ctx.fillText("You're the last line of defence, soldier. Prepare yourself, they'll arrive once you've shot 5 lasers", window.innerWidth/18, window.innerHeight/8);
+		this.enemies[i].render();
 	}
-
+	for(var i = 0; i < this.buttons.length; i++)
+	{
+	 	this.buttons[i].draw();
+	}
+	for(var i = 0; i < this.particles.length; i++)
+	{
+	 	this.particles[i].render();
+	}
+	//during tutorial you see useful information, afterwards you see your score and the IMPENDING DOOM
+	if(game.tutorialComplete == false)
+	{
+		ctx.fillStyle = game.rgb(0,0,0);
+	 	ctx.font = "bold 18px serif";
+	 	ctx.fillText("Welcome to Box Hopper. Tap the screen to jump, try to avoid the obstacles, and the impending doom!", window.innerWidth/18, window.innerHeight/5);
+	 	ctx.fillText("Jump 2 boxes to really begin!", window.innerWidth/5, window.innerHeight/4);
+	}
 	else
 	{
-		for(var i = 0; i < this.bullets.length; i++)
-		{
-		 	this.bullets[i].render();
-		}
-		*/
-		for(var i = 0; i < this.enemies.length; i++)
-		{
-			this.enemies[i].render();
-		}
-		/*
-		for(var i = 0; i < this.buttons.length; i++)
-		{
-		 	this.buttons[i].draw();
-		}
-		for(var i = 0; i < this.particles.length; i++)
-		{
-		 	this.particles[i].render();
-		}
-
-		this.player.render();
-		*/
-		ctx.fillStyle = game.rgb(200,200,200);
+		ctx.fillStyle = game.rgb(0,0,0);
 	 	ctx.font = "bold 18px serif";
 	 	ctx.fillText("Current Score: " + this.score, window.innerWidth - window.innerWidth/5, window.innerHeight/40);
 	 	ctx.fillText("High Score: " + game.score, window.innerWidth - window.innerWidth/5, window.innerHeight/20);
-	 	/*
-	 	ctx.fillText("Planet Health: " + this.planetHealth, window.innerWidth/18, window.innerHeight - window.innerHeight/20);
-	 	ctx.fillText("Ship Health: " + this.playerHealth, window.innerWidth - window.innerWidth/5, window.innerHeight - window.innerHeight / 20);
-
+	 	//IMPENDING DOOM!
+		ctx.drawImage(this.doomImg, this.animationFrame * 475, 0, 475, 469, 0, this.groundHeight - window.innerHeight / 4, this.killBoxX, window.innerHeight/4);
 	}
-	*/
+	//Stop player / doom animating while game paused
+	if(!GameScene.gameRunning){
+		this.player.render();
+	}
+	else{
+		this.player.animate();
+	 	if(this.animationFrame <= 2)
+		{
+			this.animationCount++;
+		}
+		else
+		{ 
+			this.animationFrame = 0;
+		}
+	}
+}
+
+GameScene.prototype.updateLists = function(){
+	for(var i = 0; i < this.particles.length; i++)
+	{
+		this.particles[i].update();		
+		if(this.particles[i].isAlive == false)
+		{
+			this.particles.splice(i, 1);
+		}		
+	}
+	//enemy updates
+	for(var i = 0; i < this.enemies.length; i++)
+	{
+		this.enemies[i].update();
+		if(this.enemies[i].x < 0)
+		{
+			this.enemyCount++;
+			this.enemies.splice(i, 1);
+			if(game.tutorialComplete)
+			{
+				this.score += 10;
+			}
+		}					
+	}
 }
 
 GameScene.prototype.input = function(x,y){
@@ -207,11 +203,10 @@ GameScene.prototype.detectCollisions = function(player, entities){
 			player.y + player.height > entities[i].y)
 		{
 			entities.splice(i,1);
-			player.x -= 15;
+			player.x -= window.innerWidth/100;
 		}
 		if(entities[i].x < 0)
 		{
-			this.score += 10;
 			entities.splice(i, 1);
 		}
 	}
@@ -237,7 +232,7 @@ GameScene.prototype.gameOver = function(){
 	this.spawnTimer = 60;
 	this.timeSinceSpawn = 0;
 	this.enemySpeed = 18;
-	//resetting the player, score and bullets
+	//resetting the game
 	this.player.x = window.innerWidth/15;
 	this.player.y = this.groundHeight;
 	this.score = 0;
@@ -270,15 +265,7 @@ GameScene.prototype.pauseGame = function(){
 }
 
 GameScene.prototype.onTouchStart = function(x,y){	
-	/*
-	if(x > window.innerWidth/10)
-	{
-		this.bullets.push(new Bullet(this.player.x + this.player.width, this.player.y + this.player.height/2, x, y));
-		this.bulletsFired++;
-	}
-	else
-*/
-		this.player.moveCommand();
+	this.player.moveCommand();
 
 	for(var i = 0; i < this.buttons.length; i++)
 	{

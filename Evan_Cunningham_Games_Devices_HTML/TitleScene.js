@@ -1,10 +1,13 @@
 function TitleScene(){
-	this.title = "The Game";
+	this.title = "Title";
 	this.playImg = new Image();
 	this.titleImg = new Image();
+	this.optionImg = new Image();
 	this.playImg.src = 'resources/HighRes/playButton.png';
 	this.titleImg.src = 'resources/HighRes/title.png';
-	this.buttons.push(new Button(game.sceneManager.goToScene, "Game", (window.innerWidth/2 - window.innerWidth/10), window.innerHeight/2, window.innerWidth/10, window.innerHeight/20, this.playImg));
+	this.optionImg.src = 'resources/HighRes/optionButton.png';
+	this.buttons.push(new Button(game.sceneManager.goToScene, "Game", (window.innerWidth/2 - window.innerWidth/8), window.innerHeight/2, window.innerWidth/8, window.innerHeight/20, this.playImg));
+	this.buttons.push(new Button(game.sceneManager.goToScene, "Menu", (window.innerWidth/2 - window.innerWidth/8), 2 * window.innerHeight/3, window.innerWidth/8, window.innerHeight/20, this.optionImg));
 
 }
 
