@@ -52,12 +52,7 @@ void Player::MoveEvent(float yMouseLocation){
 }
 
 void Player::PushBack(float pushForce) {
-	while (pushForce > 0)
-	{
-		m_xPos -= .0001f;
-		pushForce -= .0001f;
-	}
-	//m_xPos -= pushForce;
+	m_xPos -= pushForce;
 }
 
 float Player::getYPos(){

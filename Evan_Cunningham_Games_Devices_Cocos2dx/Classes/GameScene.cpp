@@ -184,7 +184,7 @@ void GameScreen::DetectCollisions(){
 			curr->getYPos() < m_Player->getYPos() + m_Player->getHeight() &&
 			curr->getYPos() + curr->getHeight() > m_Player->getYPos())
 		{
-			m_Player->PushBack(visibleSize.width/90);
+			m_Player->PushBack(visibleSize.width/45);
 			enemies.remove(*curr);
 			CocosDenshion::SimpleAudioEngine::sharedEngine()->playEffect("Audio/hit.wav", false, 1.0f, 1.0f, 1.0f);
 			break;
@@ -202,7 +202,6 @@ void GameScreen::DetectDeath(){
 		CocosDenshion::SimpleAudioEngine::sharedEngine()->playEffect("Audio/bite.wav", false, 1.0f, 1.0f, 1.0f);
 		enemies.clear();
 		m_Player->~Player();
-		m_gameWon = false;
 		GameScreen::activateGameOverScene(this);
 	}
 }
