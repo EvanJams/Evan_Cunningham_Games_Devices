@@ -2,6 +2,7 @@
 #define ENEMY_H
 
 #include "cocos2d.h"
+#include "Score.h"
 
 class Enemy
 {

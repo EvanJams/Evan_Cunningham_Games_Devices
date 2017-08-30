@@ -11,7 +11,9 @@ Enemy::Enemy(float xPos, float yPos, float speed, float width, float height, coc
 	m_height = height;
 	//sprite stuff
 	m_drawNode = drawNode;
-	m_sprite = cocos2d::Sprite::create("GameScreen/enemyship.png");
+	//Colourblind test and image selection
+	if (colourblindOn){	m_sprite = cocos2d::Sprite::create("GameScreen/enemyship.png"); }
+	else{ m_sprite = cocos2d::Sprite::create("GameScreen/enemy.png"); }
 	m_sprite->setScaleX(m_width);
 	m_sprite->setScaleY(m_height);
 	m_sprite->setPosition(m_xPos, m_yPos);

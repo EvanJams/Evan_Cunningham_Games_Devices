@@ -7,9 +7,7 @@ Scene* GameOver::createScene()
 	// 'scene' is an autorelease object
 	auto scene = Scene::create();
 	auto layer = GameOver::create();
-
 	scene->addChild(layer);
-
 	return scene;
 }
 
@@ -21,7 +19,6 @@ bool GameOver::init()
 	}
 
 	Size visibleSize = Director::getInstance()->getVisibleSize();
-
 	auto menuTitle =
 		MenuItemImage::create("GameOverScreen/menu.jpg",
 		"GameOverScreen/menu.jpg");
@@ -43,6 +40,14 @@ bool GameOver::init()
 
 	menu->alignItemsVerticallyWithPadding(visibleSize.height / 4);
 	this->addChild(menu);
+
+	//drawing win/lose and highscore
+	cocos2d::DrawNode* scoreDrawNode = cocos2d::DrawNode::create();
+	m_scoreLabel = Label::create("Game Over! \n Highscore: " + std::to_string(highScore), "Helvetica", 24, CCSizeMake(500, 128), kCCTextAlignmentCenter);
+	m_scoreLabel->setPosition(visibleSize.width / 2, 9* visibleSize.height / 10);
+	scoreDrawNode->addChild(m_scoreLabel);
+	this->addChild(scoreDrawNode);
+
 	return true;
 }
 

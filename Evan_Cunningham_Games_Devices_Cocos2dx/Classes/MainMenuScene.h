@@ -10,5 +10,7 @@ public:
 	static cocos2d::Scene* createScene();
 	virtual bool init();
 	void activateGameScene(Ref * pSender);
+	void colourblindMode(Ref* pSender);
+
 	CREATE_FUNC(MainMenu);
 };

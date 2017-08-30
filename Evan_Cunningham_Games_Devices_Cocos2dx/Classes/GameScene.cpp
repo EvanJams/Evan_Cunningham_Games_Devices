@@ -70,7 +70,6 @@ bool GameScreen::init()
 	spawnTimerMax = 20;
 	spawnTimer = spawnTimerMax;
 	this->scheduleUpdate();
-
 	
 	return true;
 }
@@ -91,7 +90,7 @@ void GameScreen::update(float dt){
 		}
 		else 
 		{
-			m_worldMovement -= 8;
+			m_worldMovement -= 10;
 		}
 		m_backSprite1->setPositionX(m_backPosX1 + m_worldMovement);
 		m_backSprite2->setPositionX(m_backPosX2 + m_worldMovement);
@@ -120,7 +119,8 @@ void GameScreen::update(float dt){
 			enemies.push_back(Enemy(visibleSize.width, m_groundHeight, -10, visibleSize.width / 12, visibleSize.height / 12, enemyDrawNode));
 			this->addChild(enemyDrawNode);
 			timeSinceSpawn = 0;
-			if (spawnTimer > spawnTimerMin)
+			//scaling difficulty once tutorial is passed
+			if (spawnTimer > spawnTimerMin && tutorialPassed)
 				spawnTimer--;
 		}
 		//enemies updating, bounds checking and score
@@ -132,7 +132,13 @@ void GameScreen::update(float dt){
 				if (!tutorialPassed) {
 
 				}
-				else { m_score += 5; }
+				else { 
+					m_score += 5; 
+					//victory conditions
+					if (m_score > 100) { 
+						GameScreen::activateGameOverScene(this);
+					}
+				}
 				enemies.remove(*curr);
 				break;
 			}
@@ -180,7 +186,7 @@ void GameScreen::DetectCollisions(){
 		{
 			m_Player->PushBack(visibleSize.width/90);
 			enemies.remove(*curr);
-
+			CocosDenshion::SimpleAudioEngine::sharedEngine()->playEffect("Audio/hit.wav", false, 1.0f, 1.0f, 1.0f);
 			break;
 		}
 	}
@@ -193,8 +199,10 @@ void GameScreen::DetectDeath(){
 		{
 			highScore = m_score;
 		}
+		CocosDenshion::SimpleAudioEngine::sharedEngine()->playEffect("Audio/bite.wav", false, 1.0f, 1.0f, 1.0f);
 		enemies.clear();
 		m_Player->~Player();
+		m_gameWon = false;
 		GameScreen::activateGameOverScene(this);
 	}
 }
@@ -202,6 +210,7 @@ void GameScreen::DetectDeath(){
 void GameScreen::activateGameOverScene(Ref *pSender)
 {
 	auto scene = GameOver::createScene();
-	Director::getInstance()->replaceScene(scene);
+	Director::getInstance()->replaceScene(TransitionFade::create(1.0, scene));
+	CocosDenshion::SimpleAudioEngine::sharedEngine()->stopBackgroundMusic("Audio/background.wav");
 }
 
