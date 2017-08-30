@@ -8,6 +8,8 @@
 #include "GameState.h"
 #include "Particle.h"
 
+class Doom;
+
 class GameScreen : public cocos2d::Layer
 {
 public:
@@ -28,10 +30,12 @@ private:
 	GameState gameState;
 	//timer
 	float timeSinceSpawn;
-	float spawnTimerMin;
-	float spawnTimerMax;
+	float spawnTimerMin = 8;
+	float spawnTimer = 20;
+	float spawnTimerMax = 20;
 	//variables
 	int m_score = 0;
+	float m_groundHeight = 0;
 	float m_worldMovement = 0;
 	float m_backPosX1 = 0;
 	float m_backPosY1 = 0;
@@ -45,6 +49,10 @@ private:
 	void addEvents();
 	void DetectCollisions();
 	void DetectDeath();
+	//objects
+	Doom* doom;
 
 	CREATE_FUNC(GameScreen);
 };
+
+#include "Doom.h"

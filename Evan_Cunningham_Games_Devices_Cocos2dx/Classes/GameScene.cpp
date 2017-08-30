@@ -22,6 +22,7 @@ bool GameScreen::init()
 	Size visibleSize = Director::getInstance()->getVisibleSize();
 	Point origin = Director::getInstance()->getVisibleOrigin();
 	gameState = GameState::GameInit;
+	m_groundHeight = visibleSize.height / 4;
 	//background
 	m_drawNodeBack1 = cocos2d::DrawNode::create();
 	m_backPosX1 = visibleSize.width / 2;
@@ -32,7 +33,7 @@ bool GameScreen::init()
 	m_backSprite1->setScaleY(visibleSize.height / 451);
 	m_drawNodeBack1->addChild(m_backSprite1);
 	this->addChild(m_drawNodeBack1);
-	//background2
+	//background2 for scrolling
 	m_drawNodeBack2 = cocos2d::DrawNode::create();
 	m_backPosX2 = visibleSize.width * 1.5; 
 	m_backPosY2 = visibleSize.height / 2;
@@ -42,26 +43,16 @@ bool GameScreen::init()
 	m_backSprite2->setScaleY(visibleSize.height / 451);
 	m_drawNodeBack2->addChild(m_backSprite2);
 	this->addChild(m_drawNodeBack2);
-	//auto backImage2 =
-	//	Sprite::create("GameScreen/background.png");
-	//backImage2->setPosition(Point(m_backPosX2, m_backPosY2));
-	//backImage2->setScaleX(visibleSize.width / 600);
-	//backImage2->setScaleY(visibleSize.height / 451);
-	////->setPositionX(visibleSize.width / 40);
-	//this->addChild(backImage2);
+	//Doom
+	doom = Doom::create();
+	doom->setPosition(Vec2(46, m_groundHeight + visibleSize.height/100));
+	this->addChild(doom, 5);
 	//Player
 	cocos2d::DrawNode* playerDrawNode = cocos2d::DrawNode::create();
-	m_Player = new Player(visibleSize.width / 12, visibleSize.height / 3, visibleSize.width / 3200, visibleSize.height / 3000, playerDrawNode);
+	m_Player = new Player(visibleSize.width / 6, m_groundHeight, visibleSize.width / 900, visibleSize.height / 860, playerDrawNode);
 	this->addChild(playerDrawNode);
-	//drawing health
-	/*cocos2d::DrawNode* scoreDrawNode = cocos2d::DrawNode::create();
-	m_scoreLabel = Label::create("Ship Health: " + std::to_string(m_health) + "        Colonies Left: " + std::to_string(m_earthHealth), "Helvetica", 24, CCSizeMake(500, 128), kCCTextAlignmentCenter);
-	m_scoreLabel->setPosition(4 * visibleSize.width / 10, 10 * visibleSize.height / 12);
-	scoreDrawNode->addChild(m_scoreLabel);
-	this->addChild(scoreDrawNode);*/
-	//Score
+	//Score Drawing
 	m_score = 0;
-	//drawing score
 	cocos2d::DrawNode* titleDrawNode = cocos2d::DrawNode::create();
 	m_Label = Label::create("Score: " + std::to_string(m_score) + "\n Highscore: " + std::to_string(highScore), "Helvetica", 24, CCSizeMake(500, 128), kCCTextAlignmentCenter);
 	m_Label->setPosition(9 * visibleSize.width / 10, 1 * visibleSize.height / 12);
@@ -73,12 +64,14 @@ bool GameScreen::init()
 	m_tutorialLabel->setPosition(visibleSize.width / 2, visibleSize.height / 2);
 	tutorialDrawNode->addChild(m_tutorialLabel);
 	this->addChild(tutorialDrawNode);
-
-	//Enemy
+	//Enemy spawn variables
 	timeSinceSpawn = 0;
-
+	spawnTimerMin = 8;
+	spawnTimerMax = 20;
+	spawnTimer = spawnTimerMax;
 	this->scheduleUpdate();
 
+	
 	return true;
 }
 
@@ -91,67 +84,64 @@ void GameScreen::update(float dt){
 		gameState = GameState::GameRunning;
 		break;
 	case GameState::GameRunning:
+		//Background Scrolling
 		if (m_worldMovement <= -visibleSize.width)
 		{
 			m_worldMovement = 0;
 		}
 		else 
 		{
-			m_worldMovement -= 5;
+			m_worldMovement -= 8;
 		}
 		m_backSprite1->setPositionX(m_backPosX1 + m_worldMovement);
 		m_backSprite2->setPositionX(m_backPosX2 + m_worldMovement);
+		//UI
 		m_Label->setString("Score: " + std::to_string(m_score) + "\n Highscore: " + std::to_string(highScore));
-		//m_scoreLabel->setString("Ship Health: " + std::to_string(m_health) + "        Colonies Left: " + std::to_string(m_earthHealth));
+		//Player Update
 		m_Player->Update();
 		//Particles
 		cocos2d::DrawNode* particleDrawNode = cocos2d::DrawNode::create();
-		particles.push_back(Particle(m_Player->getXPos() - m_Player->getWidth() / 2, m_Player->getYPos(), 5, 5, particleDrawNode));
+		particles.push_back(Particle(m_Player->getXPos() - m_Player->getWidth() / 4, m_Player->getYPos() - m_Player->getHeight() / 2, 5, 5, particleDrawNode));
 		this->addChild(particleDrawNode);
 		for (std::list<Particle>::iterator curr = particles.begin(); curr != particles.end(); curr++)
 		{
 			curr->Update();
-			if (curr->getAlive() == false)
+			if (curr->getAlive() == false || curr->getPosY() < m_groundHeight)
 			{
 				particles.remove(*curr);
 				break;
 			}
 		}
-
+		//Enemies spawning
 		timeSinceSpawn += dt * 10;
-		if (tutorialPassed == true)
+		if (spawnTimer <= timeSinceSpawn)
+		{
+			cocos2d::DrawNode* enemyDrawNode = cocos2d::DrawNode::create();
+			enemies.push_back(Enemy(visibleSize.width, m_groundHeight, -10, visibleSize.width / 12, visibleSize.height / 12, enemyDrawNode));
+			this->addChild(enemyDrawNode);
+			timeSinceSpawn = 0;
+			if (spawnTimer > spawnTimerMin)
+				spawnTimer--;
+		}
+		//enemies updating, bounds checking and score
+		for (std::list<Enemy>::iterator curr = enemies.begin(); curr != enemies.end(); curr++)
+		{
+			curr->update();
+			if (curr->getXPos() < 0)
+			{
+				if (!tutorialPassed) {
+
+				}
+				else { m_score += 5; }
+				enemies.remove(*curr);
+				break;
+			}
+		}
+		if (tutorialPassed)
 		{
 			m_tutorialLabel->setString("");
-			tutorialPassed = true;
-			if (spawnTimerMin <= timeSinceSpawn)
-			{
-				//random spawns
-				float enemyPass = rand() % 100;
-				float xEnemyPass = visibleSize.width;
-				float yEnemyPass = (enemyPass / 100) * visibleSize.height;
-				cocos2d::DrawNode* enemyDrawNode = cocos2d::DrawNode::create();
-				enemies.push_back(Enemy(xEnemyPass, yEnemyPass, 0, m_Player->getYPos(), visibleSize.width / 5000, visibleSize.height / 5000, enemyDrawNode));
-				this->addChild(enemyDrawNode);
-				timeSinceSpawn = 0;
-				if (spawnTimerMin > 2)
-					spawnTimerMin--;
-			}
-
-			for (std::list<Enemy>::iterator curr = enemies.begin(); curr != enemies.end(); curr++)
-			{
-				curr->update(m_Player->getYPos());
-				if (curr->getXPos() < 0)
-				{
-					enemies.remove(*curr);
-					break;
-				}
-			}
-
 			DetectCollisions();
 			DetectDeath();
-		}
-		else
-		{
 		}
 	}
 }
@@ -163,6 +153,7 @@ void GameScreen::addEvents(){
 	listener->onTouchBegan = [this](Touch* touch, Event* event){
 		Vec2 touchPos = touch->getLocation();
 		m_Player->MoveEvent(touchPos.y);
+		tutorialPassed = true;
 		return true;
 	};
 
@@ -187,7 +178,7 @@ void GameScreen::DetectCollisions(){
 			curr->getYPos() < m_Player->getYPos() + m_Player->getHeight() &&
 			curr->getYPos() + curr->getHeight() > m_Player->getYPos())
 		{
-			//m_health -= 20;
+			m_Player->PushBack(visibleSize.width/90);
 			enemies.remove(*curr);
 
 			break;
@@ -196,7 +187,7 @@ void GameScreen::DetectCollisions(){
 }
 
 void GameScreen::DetectDeath(){
-	if (m_Player->getXPos() <= 10)
+	if (m_Player->getXPos() <= visibleSize.width / 10)
 	{
 		if (highScore < m_score)
 		{

@@ -6,17 +6,18 @@
 class Player
 {
 public:
-	Player(int xPos = 100, int yPos = 300, float width = 1, float height = 1, cocos2d::DrawNode *drawnode = nullptr);
+	Player(float xPos = 100, float yPos = 300, float width = 1, float height = 1, cocos2d::DrawNode *drawnode = nullptr);
 	void Update();
 	void MoveEvent(float touchY);
+	void PushBack(float force);
 	float getXPos();
 	float getYPos();
 	float getWidth();
 	float getHeight();
 	~Player();
 private:
-	int m_xPos;
-	int m_yPos;
+	float m_xPos;
+	float m_yPos;
 	float m_yVel;
 	float m_width;
 	float m_height;

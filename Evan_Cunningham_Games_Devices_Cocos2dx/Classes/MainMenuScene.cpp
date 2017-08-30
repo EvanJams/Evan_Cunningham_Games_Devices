@@ -48,7 +48,6 @@ bool MainMenu::init()
 
 	//can specify any number of menu items here, must end with null
 	auto menu = Menu::create(titleItem, playItem, NULL);
-
 	menu->alignItemsVerticallyWithPadding(visibleSize.height / 4);
 	this->addChild(menu);
 
@@ -59,4 +58,5 @@ void MainMenu::activateGameScene(Ref *pSender)
 {
 	auto scene = GameScreen::createScene();
 	Director::getInstance()->replaceScene(TransitionFade::create(1.0, scene));
+	CocosDenshion::SimpleAudioEngine::sharedEngine()->playBackgroundMusic("Audio/background.mp3", true);
 }
