@@ -2,14 +2,22 @@ function GameScene(){
 	this.title = "Game";
 	this.enemies = [];
 	this.particles = [];
+	//enemy spawn vars
 	this.spawnTimer = 60;
 	this.timeSinceSpawn = 0;
+	this.spawnTimerLevel2 = 40;
+	this.timeSinceSpawnLevel2 = 0;
 	//rate of increase in spawn rate (higher number = slower)
 	this.spawnLimit = 40;
 	this.score = 0;
 	this.changedLevel = false;
 	this.enemySpeed = window.innerWidth/80;
-	//this.tutorialComplete = false;
+	this.enemySpeed2 = window.innerWidth / 50;
+	this.enemyWidth = window.innerWidth/25;
+	this.enemyHeight = window.innerHeight/25;
+	this.enemyWidth2 = window.innerWidth/18;
+	this.enemyHeight2 = window.innerHeight/28;
+	this.tutorialComplete = false;
 	this.enemyCount = 0;
 	this.groundHeight = 9 * window.innerHeight/10;
 	this.killBoxX = window.innerWidth/25;
@@ -18,13 +26,17 @@ function GameScene(){
 	this.playerAnimationImg = new Image();
 	this.pauseImg = new Image();
 	this.enemyImg = new Image();
+	this.enemyImg2 = new Image();
 	this.backImg = new Image();
+	this.backImg2 = new Image();
 	this.doomImg = new Image();
 	this.playerImg.src = 'resources/HighRes/player.png';
 	this.playerAnimationImg.src = 'resources/HighRes/player1.png';
 	this.pauseImg.src = 'resources/HighRes/pauseButton.png';
 	this.enemyImg.src = 'resources/HighRes/enemy.png';
+	this.enemyImg2.src = 'resources/HighRes/flyEnemy.png';
 	this.backImg.src = 'resources/HighRes/background.png';
+	this.backImg2.src = 'resources/HighRes/background2.png';
 	this.doomImg.src = 'resources/HighRes/doom.png';
 	//Game Update
 	this.worldMoveSpeed = window.innerWidth/100;
@@ -58,62 +70,30 @@ GameScene.prototype.update = function()
 		//tutorial logic (enemies spawn at regular intervals to practice and there's no downside to failure)
 		if(game.tutorialComplete == false)
 		{
-			if(this.enemyCount >= 2){
-				game.tutorialComplete = true;
-			}
-			//spawning tutorial enemies
-			if(this.timeSinceSpawn >= this.spawnTimer)
-			{
-				//Random Spawns for enemies
-				var xEnemyPass = window.innerWidth + window.innerWidth/5;
-				this.enemies.push(new Enemy(xEnemyPass, this.groundHeight, this.enemyImg, this.enemySpeed));
-				//resetting timer for enemy spawn
-				this.timeSinceSpawn = 0;
-			}
-			else{this.timeSinceSpawn++}
+			this.tutorialGameLogic();
 		}
 		//game logic (scaling difficulty, collision detection)
 		else
 		{				
-			//spawning game enemies (scaling difficulty)
-			if(this.timeSinceSpawn >= this.spawnTimer)
-			{
-				//Random Spawns for enemies
-				var xEnemyPass = window.innerWidth + window.innerWidth/5;
-				this.enemies.push(new Enemy(xEnemyPass, this.groundHeight, this.enemyImg, this.enemySpeed));
-				//resetting timer for enemy spawn
-				this.timeSinceSpawn = 0;
-				//scaling difficulty
-				if(this.spawnTimer > this.spawnLimit)
-				{
-					this.spawnTimer--;
-					this.enemySpeed++;
-				}
-			}
-			else{this.timeSinceSpawn++}
+			this.inGameLogic();
 			//Game functions
 			this.detectCollisions(this.player, this.enemies);
 			this.detectDeath(this.player);
-			//Doom animation
-			if(this.animationCount > 5)
-			{
-				this.animationFrame++;
-				this.animationCount = 0;
-			}
 		}
 	}
 }
 
 GameScene.prototype.render = function()
 {	
-	ctx.drawImage(this.backImg, this.xPosBackground1, 0, window.innerWidth + window.innerWidth/10, window.innerHeight);
-	ctx.drawImage(this.backImg, this.xPosBackground2, 0, window.innerWidth + window.innerWidth/10, window.innerHeight);
-/*	ground debug
-	ctx.fillStyle = game.rgb(200,0,0);
-	ctx.rect(0, this.groundHeight + window.innerHeight/500, window.innerWidth, window.innerHeight/500);
-	ctx.fill(); */
-
-	//ctx.drawImage(this.earthImg, 0, 4 * window.innerHeight / 5, window.innerWidth, window.innerHeight / 5);
+	if(this.changedLevel)
+	{		
+		ctx.drawImage(this.backImg2, this.xPosBackground1, 0, window.innerWidth + window.innerWidth/10, window.innerHeight);
+		ctx.drawImage(this.backImg2, this.xPosBackground2, 0, window.innerWidth + window.innerWidth/10, window.innerHeight);
+	}
+	else{
+		ctx.drawImage(this.backImg, this.xPosBackground1, 0, window.innerWidth + window.innerWidth/10, window.innerHeight);
+		ctx.drawImage(this.backImg, this.xPosBackground2, 0, window.innerWidth + window.innerWidth/10, window.innerHeight);
+	}
 	//drawing enemies, particles and buttons
 	for(var i = 0; i < this.enemies.length; i++)
 	{
@@ -168,7 +148,7 @@ GameScene.prototype.updateLists = function(){
 		if(this.particles[i].isAlive == false)
 		{
 			this.particles.splice(i, 1);
-		}		
+		}
 	}
 	//enemy updates
 	for(var i = 0; i < this.enemies.length; i++)
@@ -180,7 +160,16 @@ GameScene.prototype.updateLists = function(){
 			this.enemies.splice(i, 1);
 			if(game.tutorialComplete)
 			{
-				this.score += 10;
+				game.gameWon = false;
+				this.score += 5;
+				if(this.score >= 50)
+				{
+					this.changedLevel = true;
+				}
+				if(this.score >= 100)
+				{
+					game.gameWon = true;
+				}
 			}
 		}					
 	}
@@ -192,6 +181,57 @@ GameScene.prototype.input = function(x,y){
 		this.buttons[i].isClicked(x,y);
 	}
 	this.player.moveCommand(x,y);	
+}
+
+GameScene.prototype.tutorialGameLogic = function(){
+	if(this.enemyCount >= 2){
+		game.tutorialComplete = true;
+	}
+	//spawning tutorial enemies
+	if(this.timeSinceSpawn >= this.spawnTimer)
+	{
+		//Random Spawns for enemies
+		var xEnemyPass = window.innerWidth + window.innerWidth/5;
+		this.enemies.push(new Enemy(xEnemyPass, this.groundHeight, this.enemyImg, this.enemySpeed, this.enemyWidth, this.enemyHeight));
+		//resetting timer for enemy spawn
+		this.timeSinceSpawn = 0;
+	}
+	else{this.timeSinceSpawn++}
+}
+
+GameScene.prototype.inGameLogic = function(){
+	//spawning game enemies (scaling difficulty)
+	if(this.timeSinceSpawn >= this.spawnTimer)
+	{
+		//Random Spawns for enemies
+		var xEnemyPass = window.innerWidth + window.innerWidth/25;
+		this.enemies.push(new Enemy(xEnemyPass, this.groundHeight, this.enemyImg, this.enemySpeed, this.enemyWidth, this.enemyHeight));
+		//resetting timer for enemy spawn
+		this.timeSinceSpawn = 0;
+		//scaling difficulty
+		if(this.spawnTimer > this.spawnLimit)
+		{
+			this.spawnTimer--;
+			this.enemySpeed++;
+		}
+	}
+	else{this.timeSinceSpawn++}
+	//More boxes spawn in level 2
+	if(this.changedLevel && this.timeSinceSpawnLevel2 >= this.spawnTimerLevel2)
+	{
+		//Random Spawns for enemies
+		var xEnemyPass = window.innerWidth + window.innerWidth/5;
+		this.enemies.push(new Enemy(xEnemyPass, this.groundHeight - window.innerHeight/10, this.enemyImg2, this.enemySpeed2, this.enemyWidth2, this.enemyHeight2));
+		//resetting timer for enemy spawn
+		this.timeSinceSpawnLevel2 = 0;
+	}
+	else{this.timeSinceSpawnLevel2++}
+	//Doom animation
+	if(this.animationCount > 5)
+	{
+		this.animationFrame++;
+		this.animationCount = 0;
+	}
 }
 
 GameScene.prototype.detectCollisions = function(player, entities){	
@@ -231,13 +271,13 @@ GameScene.prototype.gameOver = function(){
 	this.enemies = [];
 	this.spawnTimer = 60;
 	this.timeSinceSpawn = 0;
-	this.enemySpeed = 18;
+	this.enemySpeed = window.innerWidth/80;
+	this.enemyCount = 0;
 	//resetting the game
 	this.player.x = window.innerWidth/15;
 	this.player.y = this.groundHeight;
 	this.score = 0;
-	//game.currentLevel = 1;
-	//this.changedLevel = false;
+	this.changedLevel = false;
 	game.sceneManager.goToScene("Game Over");
 }
 

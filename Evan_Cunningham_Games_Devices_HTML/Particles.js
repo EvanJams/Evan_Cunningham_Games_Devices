@@ -29,15 +29,12 @@ Particles.prototype.stop = function(){
 }
 
 Particles.prototype.update = function(){
-
-	console.log("" + this.x);
 	this.x += this.xVel;
 	this.y += this.yVel;
 	this.lifeSpan--;
 	if(this.lifeSpan <= 0)
 	{
 		this.isAlive = false;
-		console.log("" + this.isAlive + this.lifeSpan)
 	}
 }
 

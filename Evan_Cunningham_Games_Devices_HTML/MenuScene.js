@@ -27,9 +27,8 @@ MenuScene.prototype.render = function()
 }
 
 MenuScene.prototype.changeOption = function(){
-	console.log("tutbut" + game.tutorialComplete);
 	game.tutorialComplete = !game.tutorialComplete;
-
+	game.enemyCount = 0;
 }
 
 MenuScene.prototype.input = function(x,y){

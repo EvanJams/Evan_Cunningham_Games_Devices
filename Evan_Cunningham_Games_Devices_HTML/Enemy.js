@@ -1,6 +1,6 @@
-function Enemy(xPos, yPos, pic, speed){
-	this.width = window.innerWidth/25;
-	this.height = window.innerHeight/25;
+function Enemy(xPos, yPos, pic, speed, width, height){
+	this.width = width;
+	this.height = height;
 	this.x = xPos;
 	this.y = yPos - this.height;
 	this.vel = speed;

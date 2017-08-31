@@ -14,7 +14,14 @@ GameOverScene.prototype.render = function()
 {	
 	ctx.drawImage(game.backImage, 0, 0, window.innerWidth, window.innerHeight);
  	ctx.font = "bold 48px serif";
- 	ctx.fillText(this.title + "!", window.innerWidth/2 - window.innerWidth/8, window.innerHeight/3 + 48);
+ 	if(game.gameWon)
+ 	{
+ 		ctx.fillText(this.title + "! You won!", window.innerWidth/2 - window.innerWidth/5, window.innerHeight/3 + 48); 		
+ 	}
+ 	else
+ 	{
+	 	ctx.fillText(this.title + "! You lost.", window.innerWidth/2 - window.innerWidth/5, window.innerHeight/3 + 48);
+ 	}
  	ctx.fillText("Your Score: " + game.previousScore + ". High Score: " + game.score + "!", window.innerWidth/2 - window.innerWidth/5, window.innerHeight/10);
 	for(var i = 0; i < this.buttons.length; i++)
 	{
