@@ -3,8 +3,8 @@
 
 USING_NS_CC;
 
-Player::Player(float xPos, float yPos, float width, float height, cocos2d::DrawNode *drawnode){
-
+Player::Player(int xPos, int yPos, float width, float height, cocos2d::DrawNode *drawnode){
+	m_isAlive = true;
 	m_height = height;
 	m_width = width;
 	m_xPos = xPos;
@@ -34,15 +34,19 @@ Player::Player(float xPos, float yPos, float width, float height, cocos2d::DrawN
 }
 
 void Player::Update(){
-	m_yPos += m_yVel;
-	if (m_yPos > m_groundHeight){
-		m_yVel -= visibleSize.height/600;		
+	if(!m_isAlive){}
+	else
+	{
+		m_yPos += m_yVel;
+		if (m_yPos > m_groundHeight) {
+			m_yVel -= visibleSize.height / 600;
+		}
+		if (m_yPos < m_groundHeight) {
+			m_yVel = 0;
+			m_yPos = m_groundHeight;
+		}
+		m_sprite->setPosition(m_xPos, m_yPos);
 	}
-	if (m_yPos < m_groundHeight){
-		m_yVel = 0;
-		m_yPos = m_groundHeight;
-	}
-	m_sprite->setPosition(m_xPos, m_yPos);
 }
 
 void Player::MoveEvent(float yMouseLocation){
@@ -55,11 +59,11 @@ void Player::PushBack(float pushForce) {
 	m_xPos -= pushForce;
 }
 
-float Player::getYPos(){
+int Player::getYPos(){
 	return m_yPos;
 }
 
-float Player::getXPos(){
+int Player::getXPos(){
 	return m_xPos;
 }
 
@@ -69,6 +73,10 @@ float Player::getWidth(){
 
 float Player::getHeight(){
 	return m_height * 43;
+}
+
+void Player::setAlive(bool alive) {
+	m_isAlive = alive;
 }
 
 Player::~Player(){

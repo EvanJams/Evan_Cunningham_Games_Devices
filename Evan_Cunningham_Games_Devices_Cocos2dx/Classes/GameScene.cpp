@@ -201,6 +201,7 @@ void GameScreen::DetectDeath(){
 		}
 		CocosDenshion::SimpleAudioEngine::sharedEngine()->playEffect("Audio/bite.wav", false, 1.0f, 1.0f, 1.0f);
 		enemies.clear();
+		m_Player->setAlive(false);
 		m_Player->~Player();
 		GameScreen::activateGameOverScene(this);
 	}
